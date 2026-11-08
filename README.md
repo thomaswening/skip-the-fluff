@@ -22,7 +22,7 @@ Not yet possible. Once there is a first release, you download its APK from [GitH
 
 ## Reporting a fix that stopped working
 
-Duolingo can change its website at any time. A distraction can then come back, or Skip the Fluff may hide something it should not. Please [open an issue](https://github.com/thomaswening/skip-the-fluff/issues) that names the screen, includes a screenshot and gives the app version from the about screen.
+Duolingo can change its website at any time. A distraction can then come back, or Skip the Fluff may hide something it should not. The app will have a report button that opens a pre-filled issue for you ([REQ-033](docs/requirements.md#req-033)). Until then, please [open an issue](https://github.com/thomaswening/skip-the-fluff/issues) that names the screen, includes a screenshot and gives the app version from the about screen.
 
 ## Credit
 
