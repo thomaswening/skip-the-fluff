@@ -1,0 +1,17 @@
+# Words check_docs.py should not ask the glossary to define. One per line, then "# reason".
+# For general vocabulary that has no glossary entry. It never exempts a glossary term: a
+# glossary word used in its everyday sense gets <!-- glossary-ignore: word --> in that
+# paragraph or list item instead.
+CPU  # general computing vocabulary
+GNU  # part of the licence's name
+ADB  # Android Debug Bridge, named only to say it is not needed
+API  # general computing vocabulary
+README  # general computing vocabulary
+UTC  # general vocabulary
+GDPR  # spelt out where it is used (REQ-031)
+TDDDG  # spelt out where it is used (REQ-031)
+EUIPO  # trade mark office, named only in OPEN-E
+DPMA  # trade mark office, named only in OPEN-E
+USPTO  # trade mark office, named only in OPEN-E
+UKIPO  # trade mark office, named only in OPEN-E
+INPI  # trade mark office, named only in OPEN-E
