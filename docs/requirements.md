@@ -1,9 +1,9 @@
 # Skip the Fluff: Verifiable Product Requirements
-Version: 0.6 | 8 November 2026
+Version: 0.7 | 9 November 2026
 
 **Status:**
 
-- Sixth version, made with the [roadmap](roadmap.md) (8 November 2026). Version 0.3 was accepted by Thomas as good enough to design against on 8 November 2026. Design decisions are recorded as [ADRs](glossary.md#adr) in [docs/adr](adr/README.md), and the design as a whole in the [architecture overview](architecture.md). This pass changes no requirement: each open decision now names the roadmap phase that needs it.
+- Seventh version, after Thomas's review of the [roadmap](roadmap.md) (9 November 2026). Version 0.3 was accepted by Thomas as good enough to design against on 8 November 2026. Design decisions are recorded as [ADRs](glossary.md#adr) in [docs/adr](adr/README.md), and the design as a whole in the [architecture overview](architecture.md). This pass adds a rule of thumb for deciding whether a [fix](glossary.md#fix) is a [disputed fix](#requirement-conventions). The previous one placed each open decision in a roadmap phase.
 - The first release is a sideloaded Android app that shows the Duolingo website with the distractions in [section 2](#2-distraction-removal) removed. It has a menu button for settings, about and problem reports, an opt-in update check, and handles the back gesture, the microphone, [autofill](glossary.md#autofill) and a missing network.
 - Still open: [OPEN-A](#open-a), [OPEN-B](#open-b), [OPEN-G](#open-g), [OPEN-H](#open-h), [OPEN-I](#open-i), [OPEN-J](#open-j) and [OPEN-K](#open-k). Open decisions are collected in [section 10](#open-decisions); how the document got here is in the [revision history](#revision-history).
 
@@ -14,7 +14,15 @@ Version: 0.6 | 8 November 2026
 
 **Fix** (used by [section 2](#2-distraction-removal), [REQ-018](#req-018) and [section 8](#8-maintainability)): one change Skip the Fluff applies to the website on the user's device, such as hiding an element or pressing a skip control, that implements one requirement. Each fix can be switched off on its own.
 
-**Disputed fix** (used by [REQ-001](#req-001) and [REQ-018](#req-018)): a fix that removes a screen which other learners may reasonably find useful, even though Thomas does not. Whether a fix is disputed is stated in its requirement when the requirement is written.
+**Disputed fix** (used by [REQ-001](#req-001) and [REQ-018](#req-018)): a fix that removes a screen which other learners may reasonably find useful, even though Thomas does not. Whether a fix is disputed is stated in its requirement when the requirement is written. Claude proposes it and Thomas decides, by this rule of thumb:
+
+| The screen… | Then | Example |
+|---|---|---|
+| asks the learner to make a choice | it gets no fix; it stays shown | the out-of-hearts screen ([REQ-008](#req-008)) |
+| shows information about the learner's own learning that is not easily found elsewhere | its fix is disputed and ships switched off | perhaps a lesson summary that lists the learner's mistakes |
+| only celebrates, promotes or nags | its fix is not disputed and ships switched on | the "use the app" prompt ([REQ-005](#req-005)), the puzzle animation ([OPEN-A](#open-a)) |
+
+WHEN learners ask in reports ([REQ-033](#req-033)) to keep a screen that a fix removes, THEN a later release MAY make that fix disputed. Rationale: a choice belongs to the learner ([REQ-012](#req-012)); information about one's own learning is what other learners are most likely to miss. Rule of thumb proposed by Claude and accepted by Thomas in his review of the roadmap, 9 November 2026.
 
 **Exercise** = a screen of a lesson on which the learner answers something. **Non-exercise screen** = any other screen in or around a lesson: intros, vocabulary previews, celebrations, animations, prompts and promotions. The distinction is what [REQ-012](#req-012) relies on.
 
@@ -177,3 +185,4 @@ Each decision is recorded, with who took it and when, in the requirement or open
 | 0.4 | 8 Nov 2026 | 3, made during design | Adds [REQ-047](#req-047) (system requirements stated before installing) and [REQ-048](#req-048) (a screen for an unsupported WebView instead of the website without fixes), decided by Thomas while deciding [ADR-0002](adr/0002-fix-engine.md). After Thomas's review of [ADR-0002](adr/0002-fix-engine.md): [REQ-042](#req-042) records a fix that fails with an error, flags it as failed and shows it on the menu button after the lesson. |
 | 0.5 | 8 Nov 2026 | 4, made during design | Resolves [OPEN-D](#open-d) with [ADR-0004](adr/0004-minimum-android-10.md): [REQ-022](#req-022) sets Android 10 as the minimum and follows Chrome's support. [REQ-040](#req-040) adds a button to check for updates by hand and a notice when the phone gets no more releases; [REQ-020](#req-020) allows the manual check. [REQ-047](#req-047) states the tested WebView version instead of a fixed minimum. |
 | 0.6 | 8 Nov 2026 | Roadmap | No requirement changed. The **Needed by** note of each open decision names the [roadmap](roadmap.md) phase that needs it: [OPEN-A](#open-a), [OPEN-B](#open-b), [OPEN-G](#open-g), [OPEN-H](#open-h), [OPEN-I](#open-i), [OPEN-J](#open-j) and [OPEN-K](#open-k). The **Resolved** labels of [OPEN-C](#open-c), [OPEN-E](#open-e) and [OPEN-F](#open-f) are written as the docs check reads them. |
+| 0.7 | 9 Nov 2026 | Roadmap review | Adds to the convention [disputed fix](#requirement-conventions) a rule of thumb for deciding it, with a later change allowed when learners ask to keep a screen. Raised by Thomas's question in his review of the roadmap. |
