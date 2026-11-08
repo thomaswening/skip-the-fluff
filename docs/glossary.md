@@ -14,7 +14,9 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 
 <a id="apk"></a>**APK** (Android package) *(domain)*: the file in which an Android app is distributed and installed, comparable to an `.msi` installer on Windows. Example: `skip-the-fluff-0.1.0.apk`, downloaded from GitHub Releases.
 
-- See also: [sideloading](#sideloading)
+- See also: [sideloading](#sideloading), [signing key](#signing-key)
+
+<a id="autofill"></a>**autofill** *(domain)*: Android's service through which a password manager fills in sign-in forms in any app, including a web page shown in a [WebView](#webview). The app never sees the password. Example: Bitwarden offering a saved Duolingo password in the website's sign-in form ([REQ-039](requirements.md#req-039)).
 
 <a id="conventional-commits"></a>**Conventional Commits** *(engineering)*: a convention for commit messages, `type(scope): summary`, that a program can read to choose the next version and write the changelog. Example: `feat(fixes): hide the "use the app" prompt`.
 
@@ -59,13 +61,19 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 
 <a id="release-pr"></a>**release PR** *(engineering)*: the pull request [release-please](#release-please) keeps open and updates after every merge. Merging it publishes a release. Example: `chore(main): release 0.1.0`, which adds the 0.1.0 section to `CHANGELOG.md`.
 
+<a id="safe-browsing"></a>**Safe Browsing** *(domain)*: Google's service that warns before a dangerous page opens. Android's [WebView](#webview) uses it by default and checks the addresses a page visits against Google's list of such pages. Example: a phishing link inside a web page is blocked with a warning screen ([REQ-020](requirements.md#req-020)).
+
 <a id="semver"></a>**SemVer** (Semantic Versioning) *(engineering)*: version numbers `major.minor.patch`, raised by what a release changes. Before 1.0 the major number stays 0. Example: 0.2.0 → 0.2.1 for a bug fix, 0.2.1 → 0.3.0 for a new feature.
 
 <a id="sideloading"></a>**sideloading** *(domain)*: installing an Android app from an [APK](#apk) file instead of from the Google Play Store. Android warns before it allows it. Example: downloading Skip the Fluff's APK in the phone's browser and opening it ([REQ-032](requirements.md#req-032)).
 
+<a id="signing-key"></a>**signing key** *(domain)*: the private key with which an [APK](#apk) is signed. Android installs an update only if it is signed with the same key as the installed app, so a lost key means learners must uninstall and lose their data. Example: every release of Skip the Fluff is signed with one key ([REQ-043](requirements.md#req-043)).
+
+<a id="single-page-app"></a>**single-page app** *(engineering)*: a website that loads one page and then changes its content with JavaScript instead of loading new pages. Example: duolingo.com, where going from the learning path to a lesson loads no new page ([REQ-018](requirements.md#req-018)).
+
 <a id="squash-merge"></a>**squash merge** *(engineering)*: merging a pull request as one new commit on `main` that holds all its changes, with the pull request's title as the commit message. The branch's own commits are not kept on `main`. Example: a branch with five commits becomes `docs(requirements): v0.3, second elicitation pass (#3)`.
 
-<a id="the-website"></a>**the website** *(project)*: Duolingo's web application at duolingo.com, as served to a mobile browser. Skip the Fluff displays it; it does not own, copy or modify it. Example: the lesson page that Skip the Fluff shows full screen.
+<a id="the-website"></a>**the website** *(project)*: Duolingo's web application at duolingo.com and its subdomains, as served to a mobile browser. Skip the Fluff displays it; it does not own, copy or modify it. Example: the lesson page that Skip the Fluff shows full screen.
 
 - Defined in: [requirements.md, Requirement conventions](requirements.md#requirement-conventions)
 
