@@ -13,6 +13,8 @@ Android installs an update only if it is signed with the same key as the install
 - **The key is lost.** No learner can update any more. Each must uninstall, which deletes their sign-in and settings, and install a release signed with a new key. Skip the Fluff is not on the Play Store ([REQ-028](../requirements.md#req-028)), so Google holds no copy and cannot help.
 - **The key is stolen.** Whoever holds it can publish an [APK](../glossary.md#apk) that Android installs over Skip the Fluff as a genuine update.
 
+The repository is public, which means anyone can read it, fork it and open pull requests, but only accounts given write access can push to it. Workflows started by a pull request from a fork never receive the repository's secrets. A thief therefore needs either one of the backups or an account with write access to the repository.
+
 Releases are created by [release-please](../glossary.md#release-please) when Thomas merges the [release PR](../glossary.md#release-pr) ([development.md](../development.md#releases)). The minimum is Android 10 ([ADR-0004](0004-minimum-android-10.md)), so every supported phone understands APK Signature Scheme v3. Its key rotation lets a release say "this new key replaces the old one", provided the old key is still available to sign that statement.
 
 ## Decision
@@ -29,7 +31,7 @@ Releases are created by [release-please](../glossary.md#release-please) when Tho
 3. **Two backups, both off GitHub.** The keystore file goes in Thomas's password manager as an attachment, if it supports one, or else on an encrypted USB stick. A second copy goes on an encrypted USB stick kept somewhere other than Thomas's PC. The password is in Thomas's password manager. Once, at setup, a test APK is signed from a backup to prove that the backup works.
 4. **A published fingerprint.** The README and every release page state the SHA-256 fingerprint of the signing certificate. Anyone can check an APK against it, with `apksigner verify --print-certs` or an app such as AppVerifier.
 5. **Plans on record.** IF the key is stolen, THEN the next release rotates to a new key with signature scheme v3, signed by the old key, and the README, the release page and an issue announce it. IF the key is lost, THEN a release with a new key is published, and the README and release page explain that learners must uninstall and install it again.
-6. **Only Thomas can write to the repository.** Claude's `claudinius` account has the Triage role, not write access, so it can neither change the release workflow nor push a release tag. Thomas decided this on 8 November 2026, when the brief for this record found it had write access.
+6. **Only Thomas can write to the repository.** Claude's `claudinius` account has the Triage role, not write access, so it can neither change the release workflow nor push a release tag. Thomas decided this on 8 November 2026, when the brief for this record found a pending invitation for it with write access.
 7. **Only Thomas handles the key.** Thomas generates it on his PC, enters its password, makes the backups and stores the secrets in GitHub himself. Claude gives the commands but never sees or types the password.
 
 ## Alternatives considered
@@ -42,7 +44,7 @@ Releases are created by [release-please](../glossary.md#release-please) when Tho
 
 - Easier: a release needs two clicks from Thomas, merging the release PR and approving the job, and the APK is built from reviewed code.
 - Easier: learners and later F-Droid ([OPEN-G](../requirements.md#open-g)) can check that an APK is genuine against the published fingerprint.
-- Harder: anyone who gains write access to the repository could change the release workflow. The required approval means a changed workflow still cannot run with the key unnoticed. This holds for every account with write access. Claude's `claudinius` account had write access when this record was written. Thomas decided on 8 November 2026 to lower it to Triage, which still lets it reply to review comments and label issues. Only Thomas then has write access. The reviewer rule stays in place as the guard for any account given write access later.
+- Harder: anyone who gains write access to the repository could change the release workflow. The required approval means a changed workflow still cannot run with the key unnoticed. This holds for every account with write access. Claude's `claudinius` account had a pending invitation with write access when this record was written. Thomas decided on 8 November 2026 to lower it to Triage, which still lets it reply to review comments and label issues. Only Thomas then has write access. The reviewer rule stays in place as the guard for any account given write access later.
 - Harder: the backups must be kept up to date and findable. A key that exists only in GitHub's secrets cannot be read back out.
 - Follow-up: Thomas generates the key and the backups, with this command for the keystore:
 
