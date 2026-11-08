@@ -12,9 +12,11 @@ Skip the Fluff is unofficial and is not affiliated with or endorsed by Duolingo.
 
 ## Status
 
-Requirements. No code and no release yet. The project is described in:
+Design. No code and no release yet. The project is described in:
 
 - [Requirements](docs/requirements.md): what Skip the Fluff must do, verifiably
+- [Architecture](docs/architecture.md): how the app is built, its parts and its risks
+- [Decisions](docs/adr/README.md): the [architecture decision records](docs/glossary.md#adr), one decision each
 - [Glossary](docs/glossary.md): the terms the documents use
 - [Development](docs/development.md): branches, commits, releases and the checks every pull request runs
 
