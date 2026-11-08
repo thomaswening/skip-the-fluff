@@ -1,6 +1,6 @@
 # ADR-0001: The website is shown in Android's own WebView
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-08
 - **Decided by:** Thomas, 8 November 2026, in conversation, on Claude's brief
 
@@ -63,7 +63,7 @@ In detail:
    4. Google Password Manager offers and fills a saved Duolingo password;
    5. the website shows the same lesson screens as in Chrome.
 
-   Its result goes into `docs/spikes/` and is linked here before this pull request is merged.
+   **Result** ([spike of 8 November 2026](../spikes/2026-11-08-webview-basics.md)): all five passed. Autofill works with Google Password Manager. It does not work with Avira Password Manager, which does not fill a website shown inside another app. The spike's page reached under Android's system bars, which the first build must leave room for.
 
 ## Alternatives considered
 
@@ -78,6 +78,7 @@ In detail:
 - Harder: the learner signs in once inside Skip the Fluff, even if they are signed in in Chrome, because a WebView keeps its own cookies.
 - Harder: the engine version is not under the project's control. A WebView update can change behaviour. The report of [REQ-033](../requirements.md#req-033) carries the WebView version for this reason.
 - Harder: Google sign-in stays unavailable until [OPEN-B](../requirements.md#open-b) is decided.
-- Follow-up: the spike in point 3 of the decision, before this record is accepted.
+- Harder: password managers that match logins only to apps, such as Avira Password Manager, cannot fill the sign-in form ([spike](../spikes/2026-11-08-webview-basics.md)). Learners who use one type their password or copy it from the password manager.
+- Follow-up: outside lessons, the first build leaves room for Android's status and navigation bars, since Android 15 and later let the page reach under them ([REQ-013](../requirements.md#req-013)).
 - Follow-up: the next ADR decides how fixes are injected into the WebView.
 - Follow-up: Android 8.0, the first version with WebView autofill, is a lower bound for the minimum Android version ([OPEN-D](../requirements.md#open-d)), unless the ADR that settles it accepts [REQ-039](../requirements.md#req-039) failing on older phones.
