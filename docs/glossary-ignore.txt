@@ -18,3 +18,7 @@ INPI  # trade mark office, named only in OPEN-E
 CSS  # general web vocabulary
 WPF  # .NET user-interface framework, named only for comparison
 JSON  # general computing vocabulary
+RSA  # cryptography vocabulary, named only for the key type
+PKCS  # cryptography standard, named only for the keystore format
+USB  # general computing vocabulary
+HSM  # spelt out where it is used (ADR-0005)
