@@ -1,6 +1,6 @@
 # ADR-0004: The minimum is Android 10 and follows Chrome's support (resolves OPEN-D)
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-08
 - **Decided by:** Thomas, 8 November 2026, in conversation, on Claude's brief
 
