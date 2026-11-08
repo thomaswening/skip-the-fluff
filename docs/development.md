@@ -24,7 +24,7 @@ Decided by Thomas, 8 November 2026 (first elicitation pass, question 2).
 ## Releases
 
 - The release PR stays open and updates itself after every merge. Thomas merges it only when a release is intended. Merging it tags the commit `v0.x.y` and creates the GitHub release.
-- Each release is a signed [APK](glossary.md#apk) on [GitHub Releases](https://github.com/thomaswening/skip-the-fluff/releases) ([REQ-028](requirements.md#req-028)). The workflow job that builds and attaches the APK, and how the signing key is kept, come with their ADRs.
+- Each release is a signed [APK](glossary.md#apk) on [GitHub Releases](https://github.com/thomaswening/skip-the-fluff/releases) ([REQ-028](requirements.md#req-028)). The workflow job that builds and attaches the APK, and how the [signing key](glossary.md#signing-key) is kept, come with their ADRs.
 
 ## Writing documentation
 
