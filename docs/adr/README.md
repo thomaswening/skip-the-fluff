@@ -14,4 +14,4 @@ New records copy [template.md](template.md).
 | [ADR-0002](0002-fix-engine.md) | [Fixes](../glossary.md#fix) are data, applied by one engine that runs before the website's own scripts | Accepted |
 | [ADR-0003](0003-lesson-survives-switch.md) | The lesson survives an app switch because the app keeps its [WebView](../glossary.md#webview) and [renderer process](../glossary.md#renderer-process) alive | Accepted |
 | [ADR-0004](0004-minimum-android-10.md) | The minimum is Android 10 and follows Chrome's support | Accepted |
-| [ADR-0005](0005-signing-key.md) | GitHub Actions signs releases with a key held in a protected environment and backed up twice off GitHub | Proposed |
+| [ADR-0005](0005-signing-key.md) | GitHub Actions signs releases with a key held in a protected environment and backed up twice off GitHub | Accepted |

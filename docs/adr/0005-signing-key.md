@@ -1,6 +1,6 @@
 # ADR-0005: GitHub Actions signs releases with a key held in a protected environment and backed up twice off GitHub
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-08
 - **Decided by:** Thomas, 8 November 2026, in conversation, on Claude's brief
 
