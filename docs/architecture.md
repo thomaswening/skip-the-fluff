@@ -1,7 +1,7 @@
 # Skip the Fluff: Architecture Overview
 Draft | 8 November 2026 | Based on requirements v0.5
 
-This document gives a high-level view of how Skip the Fluff is built and why. **What** the app must do is defined in [requirements.md](requirements.md). **When** each part is built will be in the roadmap, the next document. The reasoning behind individual decisions is recorded in [architecture decision records](adr/README.md) ([ADRs](glossary.md#adr)), and measured evidence in [spikes](glossary.md#spike) (`docs/spikes/`).
+This document gives a high-level view of how Skip the Fluff is built and why. **What** the app must do is defined in [requirements.md](requirements.md). **When** each part is built is in the [roadmap](roadmap.md). The reasoning behind individual decisions is recorded in [architecture decision records](adr/README.md) ([ADRs](glossary.md#adr)), and measured evidence in [spikes](glossary.md#spike) (`docs/spikes/`).
 
 Each part is marked **Implemented**, **Planned** (decided but not built yet) or **Open** (depends on an unresolved open decision or an ADR still to be written). On 8 November 2026 no app code exists, so only the repository's checks and [release-please](glossary.md#release-please) are Implemented.
 
