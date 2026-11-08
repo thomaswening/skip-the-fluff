@@ -1,6 +1,6 @@
 # ADR-0003: The lesson survives an app switch because the app keeps its WebView and renderer process alive
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-08
 - **Decided by:** Thomas, 8 November 2026, in conversation, on Claude's brief and the [spike](../spikes/2026-11-08-lesson-survival.md) he ran
 

@@ -12,4 +12,4 @@ New records copy [template.md](template.md).
 |---|---|---|
 | [ADR-0001](0001-android-webview.md) | [The website](../glossary.md#the-website) is shown in Android's own [WebView](../glossary.md#webview) | Accepted |
 | [ADR-0002](0002-fix-engine.md) | [Fixes](../glossary.md#fix) are data, applied by one engine that runs before the website's own scripts | Accepted |
-| [ADR-0003](0003-lesson-survives-switch.md) | The lesson survives an app switch because the app keeps its [WebView](../glossary.md#webview) and [renderer process](../glossary.md#renderer-process) alive | Proposed |
+| [ADR-0003](0003-lesson-survives-switch.md) | The lesson survives an app switch because the app keeps its [WebView](../glossary.md#webview) and [renderer process](../glossary.md#renderer-process) alive | Accepted |
