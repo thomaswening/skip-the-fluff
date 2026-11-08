@@ -47,6 +47,8 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 
 <a id="fix-engine"></a>**fix engine** *(project)*: the one script Skip the Fluff injects into [the website](#the-website) before the website's own scripts. It watches the page, checks the [exercise guard](#exercise-guard), and applies the switched-on [fixes](#fix), which are data files it reads. Example: the engine hides the "use the app" prompt when the markers of [REQ-005](requirements.md#req-005)'s fix match ([ADR-0002](adr/0002-fix-engine.md)).
 
+<a id="foreground-service"></a>**foreground service** *(domain)*: work an Android app declares as ongoing and visible to the user, with a notification for as long as it runs. Android then ends the app only as a last resort. Example: a music player playing in the background; [ADR-0003](adr/0003-lesson-survives-switch.md) decided Skip the Fluff needs none.
+
 <a id="geckoview"></a>**GeckoView** *(domain)*: Mozilla's browser engine, the one in Firefox for Android, packaged for other apps to embed. Unlike a [WebView](#webview), the app ships the engine inside its own [APK](#apk). Example: the alternative [ADR-0001](adr/0001-android-webview.md) set aside.
 
 - See also: [WebView](#webview)
@@ -72,6 +74,8 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 - See also: [SemVer](#semver)
 
 <a id="release-pr"></a>**release PR** *(engineering)*: the pull request [release-please](#release-please) keeps open and updates after every merge. Merging it publishes a release. Example: `chore(main): release 0.1.0`, which adds the 0.1.0 section to `CHANGELOG.md`.
+
+<a id="renderer-process"></a>**renderer process** *(domain)*: the separate process in which a [WebView](#webview) runs a web page and its JavaScript. Android can end it to free memory without ending the app, and the page's state is then lost. Example: a lesson lost after minutes of Instagram in the background ([spike of 8 November 2026](spikes/2026-11-08-lesson-survival.md)).
 
 <a id="safe-browsing"></a>**Safe Browsing** *(domain)*: Google's service that warns before a dangerous page opens. Android's [WebView](#webview) uses it by default and checks the addresses a page visits against Google's list of such pages. Example: a phishing link inside a web page is blocked with a warning screen ([REQ-020](requirements.md#req-020)).
 
