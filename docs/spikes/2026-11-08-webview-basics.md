@@ -30,7 +30,7 @@ cd docs/spikes/2026-11-08-webview-basics
 ./gradlew assembleDebug
 ```
 
-Thomas installed it on the Samsung Galaxy S25 FE by copying the APK to the phone and did each check by hand on 8 November 2026. The phone's keyboard is SwiftKey and its default browser is Firefox. Thomas's own password manager is Avira Password Manager.
+Thomas installed it on the Samsung Galaxy S25 FE by copying the APK to the phone and did each check by hand on 8 November 2026. The phone's keyboard is SwiftKey and its default browser is Firefox.
 
 ## Result
 
