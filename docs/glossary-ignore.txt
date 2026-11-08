@@ -17,3 +17,4 @@ UKIPO  # trade mark office, named only in OPEN-E
 INPI  # trade mark office, named only in OPEN-E
 CSS  # general web vocabulary
 WPF  # .NET user-interface framework, named only for comparison
+JSON  # general computing vocabulary
