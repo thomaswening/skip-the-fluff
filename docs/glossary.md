@@ -10,7 +10,7 @@ A document links a term on its first use, e.g. `[fix](glossary.md#fix)`. Anchors
 
 Fixed labels after an entry relate it to others: **Kind of** names the broader term, **See also** related terms, **Not to be confused with** a look-alike with another meaning, **Defined in** the document whose wording governs.
 
-<a id="adr"></a>**ADR** (architecture decision record) *(engineering)*: a short document that records one design decision, the options considered and why one was chosen. Example: the planned ADR on whether Skip the Fluff uses a [WebView](#webview) or a [Custom Tab](#custom-tab).
+<a id="adr"></a>**ADR** (architecture decision record) *(engineering)*: a short document that records one design decision, the options considered and why one was chosen. Example: [ADR-0001](adr/0001-android-webview.md), which chose a [WebView](#webview) over a [Custom Tab](#custom-tab).
 
 <a id="apk"></a>**APK** (Android package) *(domain)*: the file in which an Android app is distributed and installed, comparable to an `.msi` installer on Windows. Example: `skip-the-fluff-0.1.0.apk`, downloaded from GitHub Releases.
 
@@ -40,6 +40,10 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 
 - See also: [disputed fix](#disputed-fix)
 - Defined in: [requirements.md, Requirement conventions](requirements.md#requirement-conventions)
+
+<a id="geckoview"></a>**GeckoView** *(domain)*: Mozilla's browser engine, the one in Firefox for Android, packaged for other apps to embed. Unlike a [WebView](#webview), the app ships the engine inside its own [APK](#apk). Example: the alternative [ADR-0001](adr/0001-android-webview.md) set aside.
+
+- See also: [WebView](#webview)
 
 <a id="important-words-preview"></a>**"important words" preview** *(project)*: the screen before the first exercise of a listening lesson that lists the lesson's new words and plays them as audio. Example: a list of five French words, each with a speaker button.
 
@@ -71,11 +75,19 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 
 <a id="single-page-app"></a>**single-page app** *(engineering)*: a website that loads one page and then changes its content with JavaScript instead of loading new pages. Example: duolingo.com, where going from the learning path to a lesson loads no new page ([REQ-018](requirements.md#req-018)).
 
+<a id="spike"></a>**spike** *(engineering)*: a short, throwaway experiment that answers one design question by measurement, recorded in `docs/spikes/`. Example: a test app on the [reference device](#reference-device) checking that sign-in and the microphone work in a [WebView](#webview) ([ADR-0001](adr/0001-android-webview.md)).
+
 <a id="squash-merge"></a>**squash merge** *(engineering)*: merging a pull request as one new commit on `main` that holds all its changes, with the pull request's title as the commit message. The branch's own commits are not kept on `main`. Example: a branch with five commits becomes `docs(requirements): v0.3, second elicitation pass (#3)`.
 
 <a id="the-website"></a>**the website** *(project)*: Duolingo's web application at duolingo.com and its subdomains, as served to a mobile browser. Skip the Fluff displays it; it does not own, copy or modify it. Example: the lesson page that Skip the Fluff shows full screen.
 
 - Defined in: [requirements.md, Requirement conventions](requirements.md#requirement-conventions)
+
+<a id="trusted-web-activity"></a>**Trusted Web Activity** *(domain)*: a way for an Android app to show a website full screen in the phone's own Chrome. It works without an address bar only if the website publishes a file naming the app, so it suits only a site's own owner. Example: the alternative [ADR-0001](adr/0001-android-webview.md) rejected, since duolingo.com would not name Skip the Fluff.
+
+- See also: [Custom Tab](#custom-tab)
+
+<a id="user-agent"></a>**user agent** *(engineering)*: the text a browser sends with every request to say which browser it is. Android's [WebView](#webview) adds the marker `wv` to it. Example: Google refuses its sign-in when the user agent has the `wv` marker ([ADR-0001](adr/0001-android-webview.md)).
 
 <a id="webview"></a>**WebView** *(domain)*: an Android component that shows web pages inside an app, comparable to WebView2 in a WPF window. The app can run its own CSS and JavaScript in the page. Example: Skip the Fluff shows [the website](#the-website) in a WebView and hides its prompts with injected CSS.
 
