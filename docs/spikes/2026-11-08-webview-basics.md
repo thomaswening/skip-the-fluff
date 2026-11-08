@@ -39,17 +39,17 @@ Thomas installed it on the Samsung Galaxy S25 FE by copying the APK to the phone
 | 1. Sign-in survives a restart | yes | Signed in with email and password, closed the app from the recent-apps screen, reopened it: still signed in. |
 | 2. Microphone | yes | Android's permission dialog appeared on the first speaking exercise. After it was granted, speaking exercises worked as in Chrome. |
 | 3. Audio without a tap | yes | Listening exercises played their audio by themselves. |
-| 4. Autofill | yes, with Google; no, with Avira | The long-press menu of the email field offers "Autofill", so the WebView takes part in Android's autofill. With Avira selected as the autofill service, Avira answered that the field cannot be autofilled. With Google selected and a login saved for `duolingo.com` in Google Password Manager, Google offered that login in the sign-in form. |
+| 4. Autofill | yes, with Google; no, with Avira | The long-press menu of the email field offers "Autofill", so the WebView takes part in Android's autofill. With Avira selected as the autofill service, Avira answered that the field cannot be autofilled. With Google selected and a login with its password saved for `duolingo.com` in Google Password Manager, Google offered the login in the sign-in form and suggested its password. |
 | 5. Same lesson screens as in Chrome | yes, with one difference caused by the spike | The screens matched Chrome. The page reached under Android's status and navigation bars, so the website's top and bottom rows of buttons were hard to hit. |
 
 Two findings explain the differences:
 
 - **Avira does not fill a website inside another app.** Android passed the request to Avira, which then found nothing to fill. Avira probably matches its logins to apps, not to the website a WebView shows. This is Avira's limitation and cannot be fixed by Skip the Fluff.
+- **Google Password Manager can be told never to save passwords for an app or a site.** Thomas had excluded both duolingo.com and the spike app in an earlier answer to Google's save prompt, so at first Google neither saved nor offered a password. After he removed both from the exclusion list in Google Password Manager's settings, saving and filling worked. A learner who reports that autofill does nothing should check that list first.
 - **The overlap with the system bars comes from the spike, not the WebView.** Android 15 and later let an app that targets API 35 or higher draw behind the status and navigation bars, and the spike reserves no room for them.
 
 ## Not tested
 
-- The password itself being filled in. The login saved in Google Password Manager had no password, so Google offered the email address and said no password was saved. The step from offering a login to filling its password is the password manager's own, but it was not seen.
 - Other password managers, such as Bitwarden, Samsung Pass or 1Password.
 - The Android and WebView versions on the phone were not written down.
 - A lesson kept across a switch to another app ([REQ-014](../requirements.md#req-014)). That is the subject of its own [ADR](../glossary.md#adr).
@@ -57,4 +57,4 @@ Two findings explain the differences:
 
 ## Conclusion
 
-Android's WebView meets [REQ-016](../requirements.md#req-016) and [REQ-038](../requirements.md#req-038) on the reference device with documented settings alone. It takes part in Android's autofill, and Google Password Manager offers a login saved for duolingo.com, which is what [REQ-039](../requirements.md#req-039)'s acceptance line names. The first build must leave room for the system bars outside lessons ([REQ-013](../requirements.md#req-013)). Adopted in [ADR-0001](../adr/0001-android-webview.md), which is accepted on this evidence.
+Android's WebView meets [REQ-016](../requirements.md#req-016) and [REQ-038](../requirements.md#req-038) on the reference device with documented settings alone. It takes part in Android's autofill, and Google Password Manager saves and fills a password for duolingo.com, which is what [REQ-039](../requirements.md#req-039)'s acceptance line names. The first build must leave room for the system bars outside lessons ([REQ-013](../requirements.md#req-013)). Adopted in [ADR-0001](../adr/0001-android-webview.md), which is accepted on this evidence.
