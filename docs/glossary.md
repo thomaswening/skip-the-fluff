@@ -36,10 +36,16 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 - Not to be confused with: [non-exercise screen](#non-exercise-screen)
 - Defined in: [requirements.md, Requirement conventions](requirements.md#requirement-conventions)
 
+<a id="exercise-guard"></a>**exercise guard** *(project)*: the one check the [fix engine](#fix-engine) makes before any [fix](#fix) acts: whether a visible [exercise](#exercise) is on screen. If one is, no fix acts. Example: a popup over an exercise stays visible, even though a fix's [markers](#marker) match it ([ADR-0002](adr/0002-fix-engine.md)).
+
+- See also: [fix engine](#fix-engine)
+
 <a id="fix"></a>**fix** *(project)*: one change Skip the Fluff applies to [the website](#the-website) on the learner's device, implementing one requirement, which can be switched off on its own. Example: hiding the "use the app" prompt ([REQ-005](requirements.md#req-005)).
 
 - See also: [disputed fix](#disputed-fix)
 - Defined in: [requirements.md, Requirement conventions](requirements.md#requirement-conventions)
+
+<a id="fix-engine"></a>**fix engine** *(project)*: the one script Skip the Fluff injects into [the website](#the-website) before the website's own scripts. It watches the page, checks the [exercise guard](#exercise-guard), and applies the switched-on [fixes](#fix), which are data files it reads. Example: the engine hides the "use the app" prompt when the markers of [REQ-005](requirements.md#req-005)'s fix match ([ADR-0002](adr/0002-fix-engine.md)).
 
 <a id="geckoview"></a>**GeckoView** *(domain)*: Mozilla's browser engine, the one in Firefox for Android, packaged for other apps to embed. Unlike a [WebView](#webview), the app ships the engine inside its own [APK](#apk). Example: the alternative [ADR-0001](adr/0001-android-webview.md) set aside.
 
@@ -49,6 +55,8 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 
 - Kind of: [non-exercise screen](#non-exercise-screen)
 - Defined in: [REQ-010](requirements.md#req-010)
+
+<a id="marker"></a>**marker** *(project)*: one thing a [fix](#fix) requires to be on the page before it acts: an element selector, optionally with text the element must contain. A fix acts only when all its markers match. Example: `[data-test='app-promo']` with the text "Get the app" (made up) ([ADR-0002](adr/0002-fix-engine.md)).
 
 <a id="non-exercise-screen"></a>**non-exercise screen** *(project)*: any screen in or around a lesson that is not an [exercise](#exercise): intros, vocabulary previews, celebrations, animations, prompts and promotions. Example: the unit-completion animation ([REQ-009](requirements.md#req-009)).
 
