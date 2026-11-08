@@ -26,7 +26,7 @@ The order is derived from the requirements' rationales, not decided separately. 
 
 - **Platform:** Android phones with Android 10 (API level 29) or later. The minimum follows Chrome's support ([ADR-0004](adr/0004-minimum-android-10.md)). Accepted on the [reference device](glossary.md#reference-device), a Samsung Galaxy S25 FE ([REQ-022](requirements.md#req-022)).
 - **Rendering:** Android's own WebView, kept up to date through the Play Store ([ADR-0001](adr/0001-android-webview.md)). The engine version is not under the project's control.
-- **Language and build:** **Open**, to be decided in the ADR on the app's structure and build. The two spikes were written in Kotlin and built with Gradle and Microsoft OpenJDK 21. Kotlin is to Android what C# is to .NET, and Gradle plays the part of MSBuild. The [fix engine](glossary.md#fix-engine) runs in the page, so it is JavaScript whatever the app's language ([ADR-0002](adr/0002-fix-engine.md)).
+- **Language and build:** **Open**, to be decided in the ADR on the app's structure and build. The two spikes were written in Kotlin and built with Gradle and Microsoft OpenJDK 21. Kotlin is to Android what C# is to .NET, and Gradle plays the part of MSBuild. The [fix engine](glossary.md#fix-engine) runs in the page, and the WebView runs only JavaScript ([ADR-0002](adr/0002-fix-engine.md)). Its source can still be written in TypeScript, which adds static types and compiles to JavaScript when the app is built. Which of the two is also for the structure and build ADR.
 - **No downloaded code:** fixes and the engine ship inside the [APK](glossary.md#apk) and change only with a release ([REQ-024](requirements.md#req-024)).
 - **Distribution:** a signed APK on GitHub Releases, installed by [sideloading](glossary.md#sideloading). Not on the Play Store ([REQ-028](requirements.md#req-028)). Signed in CI with a key that only Thomas handles ([ADR-0005](adr/0005-signing-key.md)).
 - **Legal:** GPL-3.0 only ([REQ-026](requirements.md#req-026)). No Duolingo branding ([REQ-027](requirements.md#req-027)). Duolingo's pages are not copied into the public repository, which constrains how fixes are tested (an ADR still to be written).
@@ -221,7 +221,7 @@ Still to be written, each briefed in conversation first:
 
 | Decision | What it settles | Needed by |
 |---|---|---|
-| The app's structure and build | language, modules and folders, how [dependency rules](#dependency-rules) are enforced, the local store, where the version lives instead of `version.txt` | the first code |
+| The app's structure and build | the app's language, the fix engine's source language (JavaScript or TypeScript), modules and folders, how [dependency rules](#dependency-rules) are enforced, the local store, where the version lives instead of `version.txt` | the first code |
 | Testing fixes and the engine | how the engine, the guard and each fix are tested without Duolingo's pages in the repository | the first fix |
 | The release workflow | the signing job, the minimum-version file attached to each release, the tested WebView version on the release page | the first release |
 
