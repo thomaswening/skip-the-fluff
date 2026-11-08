@@ -28,10 +28,10 @@ Phases 3 and 4 depend only on phase 2, so their work can interleave.
 
 ### Phase 0: Foundations
 
-The ADR on the app's structure and build decides the language, the modules and how the [dependency rules](architecture.md#dependency-rules) are enforced. Then an empty app is set up with its application ID, `minSdk` 29 and the version moved from `version.txt` into the build file. CI builds a debug APK and runs the tests on every pull request. `tools/check_docs.py` is given the source and test globs, so that a test tagged with a requirement ID that does not exist fails the check. The section on building and testing in [development.md](development.md) is written, with the .NET comparisons Thomas needs.
+[ADR-0006](adr/0006-structure-and-build.md) decided the language, the modules and how the [dependency rules](architecture.md#dependency-rules) are enforced. An empty app is set up with its [application ID](glossary.md#application-id), `minSdk` 29 and the version in the build file, written by [release-please](glossary.md#release-please). CI builds a debug APK and runs the tests on every pull request. `tools/check_docs.py` is given the source and test globs, so that a test tagged with a requirement ID that does not exist fails the check. The section on building and testing in [development.md](development.md) is written, with the .NET comparisons Thomas needs.
 
 - Requirements: [REQ-022](requirements.md#req-022), [REQ-029](requirements.md#req-029)
-- Resolves: the structure and build ADR (to be written)
+- Resolves: the structure and build ADR ([ADR-0006](adr/0006-structure-and-build.md))
 - Needs: nothing
 
 ### Phase 1: The shell
@@ -116,7 +116,7 @@ Each of these is a COULD and starts with its open decision. The phases are numbe
 
 | Decision | Needed before |
 |---|---|
-| The app's structure and build (ADR to be written) | Phase 0 |
+| The app's structure and build ([ADR-0006](adr/0006-structure-and-build.md), decided 9 November 2026) | Phase 0 |
 | [OPEN-H](requirements.md#open-h) | Phase 1 (orientation) |
 | Testing fixes and the engine (ADR to be written) | Phase 2 |
 | [OPEN-A](requirements.md#open-a) | Phase 3, each new fix; collected continuously |

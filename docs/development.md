@@ -19,7 +19,7 @@ Decided by Thomas, 8 November 2026 (first elicitation pass, question 2).
 - [release-please](glossary.md#release-please) reads the commits on `main`. It keeps a [release PR](glossary.md#release-pr) open with the next version and the new `CHANGELOG.md` entries.
 - Versions follow [SemVer](glossary.md#semver), starting at 0.1.0. Before 1.0, `feat` raises the minor version (0.1.0 → 0.2.0) and `fix` the patch version (0.2.0 → 0.2.1). A breaking change also raises only the minor version.
 - `feat`, `fix`, `perf` and `docs` appear in the changelog. `build`, `ci`, `test`, `refactor` and `chore` are hidden, since a learner reading the changelog does not need them.
-- The version is written by release-please only. Until the app has a build file, it lives in `version.txt`. The build ADR moves it into the build file.
+- The version is written by release-please only. It lives in `app/build.gradle.kts`, on the line marked `x-release-please-version` ([ADR-0006](adr/0006-structure-and-build.md)). Until phase 0 adds that file, only `.release-please-manifest.json` holds it.
 
 ## Releases
 

@@ -16,6 +16,10 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 
 - See also: [sideloading](#sideloading), [signing key](#signing-key)
 
+<a id="application-id"></a>**application ID** *(domain)*: the permanent name that identifies an Android app on the phone, comparable to a NuGet package ID. Android installs an [APK](#apk) as an update only when its application ID and its [signing key](#signing-key) match the installed app. Example: `io.github.thomaswening.skipthefluff` ([ADR-0006](adr/0006-structure-and-build.md)).
+
+<a id="architecture-test"></a>**architecture test** *(engineering)*: a unit test that checks how the code is structured rather than what it does, e.g. which package may import which. Comparable to a NetArchTest test in .NET. Example: a test that fails if any package but `update` imports `java.net` ([ADR-0006](adr/0006-structure-and-build.md)).
+
 <a id="autofill"></a>**autofill** *(domain)*: Android's service through which a password manager fills in sign-in forms in any app, including a web page shown in a [WebView](#webview). The app never sees the password. Example: Bitwarden offering a saved Duolingo password in the website's sign-in form ([REQ-039](requirements.md#req-039)).
 
 <a id="conventional-commits"></a>**Conventional Commits** *(engineering)*: a convention for commit messages, `type(scope): summary`, that a program can read to choose the next version and write the changelog. Example: `feat(fixes): hide the "use the app" prompt`.
@@ -25,6 +29,10 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 <a id="custom-tab"></a>**Custom Tab** *(domain)*: a browser tab that an Android app opens with the phone's own browser, styled like part of the app. Unlike a [WebView](#webview), the app cannot change the page in it. Example: Google sign-in works in a Custom Tab but not in a WebView ([OPEN-B](requirements.md#open-b)).
 
 - Not to be confused with: [WebView](#webview)
+
+<a id="datastore"></a>**DataStore** *(domain)*: the Jetpack library in which an Android app keeps small amounts of data, such as settings, in its private storage. Each write replaces the file atomically. Example: Skip the Fluff's settings, fix status and marks, kept as one JSON document ([ADR-0006](adr/0006-structure-and-build.md)).
+
+- See also: [Jetpack Compose](#jetpack-compose)
 
 <a id="disputed-fix"></a>**disputed fix** *(project)*: a [fix](#fix) that removes a screen other learners may reasonably want to keep. It ships switched off. Example: none so far.
 
@@ -53,10 +61,21 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 
 - See also: [WebView](#webview)
 
+<a id="gradle"></a>**Gradle** *(domain)*: the build tool of Android apps, which plays the part of MSBuild and NuGet restore together. Each build file, `build.gradle.kts`, is a short Kotlin script, comparable to a `.csproj`. Example: `gradlew assembleDebug` builds a debug [APK](#apk).
+
+<a id="gradle-module"></a>**Gradle module** *(domain)*: a folder with its own Gradle build file, compiled as a unit, comparable to a project in a .NET solution. A module may use another only if its build file declares the dependency. Example: `app/`, Skip the Fluff's only module ([ADR-0006](adr/0006-structure-and-build.md)).
+
+- Kind of: [Gradle](#gradle)
+- Not to be confused with: a Kotlin package, which is a namespace and sets no boundary
+
 <a id="important-words-preview"></a>**"important words" preview** *(project)*: the screen before the first exercise of a listening lesson that lists the lesson's new words and plays them as audio. Example: a list of five French words, each with a speaker button.
 
 - Kind of: [non-exercise screen](#non-exercise-screen)
 - Defined in: [REQ-010](requirements.md#req-010)
+
+<a id="jetpack-compose"></a>**Jetpack Compose** *(domain)*: Android's toolkit for drawing an app's screens in Kotlin code. Each screen is a function of the current state and is redrawn by itself when the state, theme or font size changes. Comparable to Blazor components rather than to WPF's XAML. Example: Skip the Fluff's settings screen ([ADR-0006](adr/0006-structure-and-build.md)).
+
+<a id="kotlin"></a>**Kotlin** *(domain)*: Google's first-choice programming language for Android apps, as C# is for .NET. Example: the code of the [spikes](#spike) and of the app ([ADR-0006](adr/0006-structure-and-build.md)).
 
 <a id="marker"></a>**marker** *(project)*: one thing a [fix](#fix) requires to be on the page before it acts: an element selector, optionally with text the element must contain. A fix acts only when all its markers match. Example: `[data-test='app-promo']` with the text "Get the app" (made up) ([ADR-0002](adr/0002-fix-engine.md)).
 
