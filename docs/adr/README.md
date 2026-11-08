@@ -11,4 +11,4 @@ New records copy [template.md](template.md).
 | Record | Decision | Status |
 |---|---|---|
 | [ADR-0001](0001-android-webview.md) | [The website](../glossary.md#the-website) is shown in Android's own [WebView](../glossary.md#webview) | Accepted |
-| [ADR-0002](0002-fix-engine.md) | [Fixes](../glossary.md#fix) are data, applied by one engine that runs before the website's own scripts | Proposed |
+| [ADR-0002](0002-fix-engine.md) | [Fixes](../glossary.md#fix) are data, applied by one engine that runs before the website's own scripts | Accepted |
