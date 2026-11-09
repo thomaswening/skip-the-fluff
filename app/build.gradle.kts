@@ -20,6 +20,19 @@ android {
         versionCode = versionCodeOf(versionName!!)
     }
 
+    signingConfigs {
+        // One debug key for every computer and every CI run, committed in app/debug.keystore. With the
+        // SDK's own key, created anew on each machine, a CI build would not install over the previous
+        // one and the phone would lose its sign-in each time. A debug key is not secret: the debug build
+        // has its own application ID, so it can never update a release.
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         debug {
             // A debug build is signed with this computer's debug key, not the release key. Its own ID

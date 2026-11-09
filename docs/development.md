@@ -122,7 +122,15 @@ The [architecture tests](glossary.md#architecture-test) are unit tests too, writ
 
 ### The debug build
 
-A debug build is signed with a debug key that the Android SDK creates on each computer, not with the [signing key](glossary.md#signing-key) of the releases. Its application ID is `io.github.thomaswening.skipthefluff.debug` and its version ends in `-debug`. So it installs next to a release. With the release's own ID it would block the release's updates, because Android refuses an update signed with another key. It is a separate app with its own sign-in and settings.
+A debug build is signed with the debug key committed in `app/debug.keystore`, not with the [signing key](glossary.md#signing-key) of the releases. Its application ID is `io.github.thomaswening.skipthefluff.debug` and its version ends in `-debug`. So it installs next to a release. With the release's own ID it would block the release's updates, because Android refuses an update signed with another key. It is a separate app with its own sign-in and settings.
+
+Every computer and every CI run signs with the same committed debug key. Android installs an update only if it is signed with the same key as the installed app. With the key the Android SDK creates anew on each computer, each CI run would sign differently. Each debug build from a pull request would then need the previous one uninstalled first, and the phone would lose its sign-in each time. The debug key is not a secret: its password is `android`, as for every debug key. The debug build's own application ID keeps it from ever replacing a release. `.gitignore` ignores every other keystore (`*.p12`, `*.jks`, `*.keystore`), so the release key cannot be committed by mistake ([ADR-0005](adr/0005-signing-key.md)).
+
+| Installed debug build | New debug build | Result |
+|---|---|---|
+| signed with the committed key | from any pull request or computer | installs over it; sign-in and settings stay |
+| signed with an earlier key (before 10 November 2026) | signed with the committed key | refused as an update: uninstall the old one first, once |
+| any | a release | installs next to it, because the IDs differ |
 
 To install it on the phone, download the APK from a [build workflow](#build-workflow) run (the run's page, then Artifacts, then `debug-apk`, a zip that holds the APK) or build it locally. Then copy it to the phone and open it there, as for any [sideloaded](glossary.md#sideloading) app.
 
