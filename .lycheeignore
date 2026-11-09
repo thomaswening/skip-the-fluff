@@ -1,0 +1,8 @@
+# URLs that lychee may not check: one regular expression per line.
+# Each one is a page that works in a browser but refuses automated clients.
+# Check each one by hand when you touch the document that links it.
+# The rule and its cases: docs/development.md, section "Docs check".
+
+# Android Authority answers every automated client with 403 Forbidden.
+# Linked from docs/adr/0004-minimum-android-10.md. Checked in a browser on 9 November 2026.
+^https://www\.androidauthority\.com/
