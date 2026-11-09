@@ -26,7 +26,7 @@ The order is derived from the requirements' rationales, not decided separately. 
 
 - **Platform:** Android phones with Android 10 (API level 29) or later. The minimum follows Chrome's support ([ADR-0004](adr/0004-minimum-android-10.md)). Accepted on the [reference device](glossary.md#reference-device), a Samsung Galaxy S25 FE ([REQ-022](requirements.md#req-022)).
 - **Rendering:** Android's own WebView, kept up to date through the Play Store ([ADR-0001](adr/0001-android-webview.md)). The engine version is not under the project's control.
-- **Language and build:** **Open**, to be decided in the ADR on the app's structure and build. The two spikes were written in Kotlin and built with Gradle and Microsoft OpenJDK 21. Kotlin is to Android what C# is to .NET, and Gradle plays the part of MSBuild. The [fix engine](glossary.md#fix-engine) runs in the page, and the WebView runs only JavaScript ([ADR-0002](adr/0002-fix-engine.md)). Its source can still be written in TypeScript, which adds static types and compiles to JavaScript when the app is built. Which of the two is also for the structure and build ADR.
+- **Language and build:** the app is written in [Kotlin](glossary.md#kotlin) and built with [Gradle](glossary.md#gradle) on Microsoft OpenJDK 21. The [fix engine](glossary.md#fix-engine) is plain JavaScript, which TypeScript type-checks in CI, so the Gradle build needs no Node ([ADR-0006](adr/0006-structure-and-build.md)).
 - **No downloaded code:** fixes and the engine ship inside the [APK](glossary.md#apk) and change only with a release ([REQ-024](requirements.md#req-024)).
 - **Distribution:** a signed APK on GitHub Releases, installed by [sideloading](glossary.md#sideloading). Not on the Play Store ([REQ-028](requirements.md#req-028)). Signed in CI with a key that only Thomas handles ([ADR-0005](adr/0005-signing-key.md)).
 - **Legal:** GPL-3.0 only ([REQ-026](requirements.md#req-026)). No Duolingo branding ([REQ-027](requirements.md#req-027)). Duolingo's pages are not copied into the public repository, which constrains how fixes are tested (an ADR still to be written).
@@ -64,7 +64,7 @@ Everything the app sends to a third party goes through the learner: reports leav
 
 ## 5. Building blocks
 
-The blocks below are the app's logical parts. How they map onto source folders, Gradle modules and packages is **Open** until the ADR on the app's structure and build.
+The blocks below are the app's logical parts. Each native block is one Kotlin package in the one [Gradle module](glossary.md#gradle-module) `app/`. The fix engine lives in `engine/`, the fix files in `fixes/` ([ADR-0006](adr/0006-structure-and-build.md)).
 
 ```mermaid
 flowchart TB
@@ -111,7 +111,7 @@ flowchart TB
 | **Lesson state** | Knows whether a lesson is shown, from "lesson started" and "lesson ended". Drives the system bars, the menu button's mode and the back gesture ([REQ-013](requirements.md#req-013), [REQ-035](requirements.md#req-035), [REQ-037](requirements.md#req-037)). | Planned |
 | **Menu button** | The small button over the website. Outside lessons it opens the menu. During lessons it is smaller and marks a problem. It shows that marks, failures or a new release are waiting ([REQ-035](requirements.md#req-035), [REQ-036](requirements.md#req-036), [REQ-040](requirements.md#req-040), [REQ-042](requirements.md#req-042)). | Planned |
 | **Own screens** | Settings with a switch per fix and the update-check setting, the first-start dialog, about, no connection, unsupported WebView ([REQ-018](requirements.md#req-018), [REQ-019](requirements.md#req-019), [REQ-040](requirements.md#req-040), [REQ-044](requirements.md#req-044), [REQ-048](requirements.md#req-048)). | Planned |
-| **Local store** | Keeps settings, per-fix status (lessons since last effect, failures) and marks on the phone only ([REQ-018](requirements.md#req-018), [REQ-036](requirements.md#req-036), [REQ-042](requirements.md#req-042)). Survives updates ([REQ-043](requirements.md#req-043)). | Planned; storage mechanism Open (structure and build ADR) |
+| **Local store** | Keeps settings, per-fix status (lessons since last effect, failures) and marks on the phone only ([REQ-018](requirements.md#req-018), [REQ-036](requirements.md#req-036), [REQ-042](requirements.md#req-042)). Survives updates ([REQ-043](requirements.md#req-043)). One typed document in [DataStore](glossary.md#datastore), excluded from Android's cloud backup ([ADR-0006](adr/0006-structure-and-build.md)). | Planned |
 | **Report builder** | Fills in the email or GitHub issue from versions, switched-on fixes, fix status and marks, and opens it in the mail app or browser ([REQ-033](requirements.md#req-033)). | Planned; report address Open ([OPEN-J](requirements.md#open-j)) |
 | **Update checker** | Asks GitHub at most once a day, or when the learner presses the button, for the latest release and its minimum Android version ([REQ-040](requirements.md#req-040), [ADR-0004](adr/0004-minimum-android-10.md)). The only network code of the app's own. | Planned |
 | **Release pipeline** | release-please opens the release PR and creates the release. A job in the `release` environment builds, signs and attaches the APK and the minimum-version file ([REQ-028](requirements.md#req-028), [REQ-043](requirements.md#req-043), [ADR-0005](adr/0005-signing-key.md)). | release-please Implemented; signing job Open (release workflow ADR) |
@@ -127,7 +127,7 @@ Later releases add blocks for Google sign-in ([OPEN-B](requirements.md#open-b)),
 - **One block talks to the network.** Apart from the WebView itself, only the update checker makes requests. The report builder hands its text to other apps and sends nothing ([REQ-020](requirements.md#req-020)).
 - **The native screens do not depend on the website.** Settings, about, no connection and unsupported WebView work without a page loaded, so they stay reachable when the website does not ([REQ-044](requirements.md#req-044), [REQ-048](requirements.md#req-048)).
 
-The fix files are already planned to be checked when the app is built ([ADR-0002](adr/0002-fix-engine.md)). How the other rules are enforced is **Open**, for the ADRs on structure and build and on testing. Candidates are separate Gradle modules, whose dependencies the build checks the way .NET checks project references, and a test that fails if any block but the update checker uses a network class.
+The fix files are checked when the app is built ([ADR-0002](adr/0002-fix-engine.md)). The other rules are [architecture tests](glossary.md#architecture-test) that run with the unit tests and fail the build, e.g. one that fails if any package but `update` imports `java.net`. The four messages are one closed Kotlin type that only the message bridge creates ([ADR-0006](adr/0006-structure-and-build.md)).
 
 ## 6. Key concepts
 
@@ -216,12 +216,12 @@ The lesson lives only in the page's JavaScript memory. The app keeps it by never
 | [0003](adr/0003-lesson-survives-switch.md) | The lesson survives an app switch because the app keeps its WebView and renderer process alive | | Accepted |
 | [0004](adr/0004-minimum-android-10.md) | The minimum is Android 10 and follows Chrome's support | [OPEN-D](requirements.md#open-d) | Accepted |
 | [0005](adr/0005-signing-key.md) | GitHub Actions signs releases with a key held in a protected environment and backed up twice off GitHub | | Accepted |
+| [0006](adr/0006-structure-and-build.md) | The app is one Kotlin module built with Gradle, with a JavaScript fix engine type-checked in CI | | Accepted |
 
 Still to be written, each briefed in conversation first:
 
 | Decision | What it settles | Needed by |
 |---|---|---|
-| The app's structure and build | the app's language, the fix engine's source language (JavaScript or TypeScript), modules and folders, how [dependency rules](#dependency-rules) are enforced, the local store, where the version lives instead of `version.txt` | the first code |
 | Testing fixes and the engine | how the engine, the guard and each fix are tested without Duolingo's pages in the repository | the first fix |
 | The release workflow | the signing job, the minimum-version file attached to each release, the tested WebView version on the release page | the first release |
 
