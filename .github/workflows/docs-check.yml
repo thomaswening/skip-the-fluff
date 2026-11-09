@@ -26,8 +26,11 @@ jobs:
         with:
           node-version: "22"
       - name: Check documents
-        run: python tools/check_docs.py . --base "origin/${{ github.base_ref }}"
-        # Projects with code add their globs, e.g.
-        #   --source "src/**/*.cpp" --tests "tests/**/*.cpp" --repo-url "https://github.com/${{ github.repository }}"
-        # Projects with Markdown outside docs/ add it to the link and Mermaid checks, e.g.
-        #   --markdown "topics/**/*.md" "*.md"
+        # The globs name the code whose links into docs/ and REQ/ADR mentions are checked.
+        # Keep them in step with docs/development.md#docs-check.
+        run: >-
+          python tools/check_docs.py . --base "origin/${{ github.base_ref }}"
+          --source "*.kts" "app/*.kts" "gradle/*.toml" "app/src/main/**/*.kt" "app/src/main/**/*.xml" "engine/*.js"
+          --tests "app/src/test/**/*.kt"
+          --markdown "fixes/*.md"
+          --repo-url "https://github.com/${{ github.repository }}"

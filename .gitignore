@@ -1,0 +1,10 @@
+# Gradle and Android Studio
+.gradle/
+.kotlin/
+build/
+local.properties
+.idea/
+*.iml
+
+# The engine's type check (npm)
+engine/node_modules/

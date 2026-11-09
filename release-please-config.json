@@ -7,6 +7,9 @@
       "include-component-in-tag": false,
       "initial-version": "0.1.0",
       "bump-minor-pre-major": true,
+      "extra-files": [
+        { "type": "generic", "path": "app/build.gradle.kts" }
+      ],
       "changelog-sections": [
         { "type": "feat", "section": "Features" },
         { "type": "fix", "section": "Bug Fixes" },

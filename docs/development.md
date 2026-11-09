@@ -1,6 +1,6 @@
 # Skip the Fluff: Development
 
-How work on Skip the Fluff is done and checked. Sections on building, testing and signing are added with the first code, once the [ADR](glossary.md#adr) on the app's structure and build is written.
+How work on Skip the Fluff is done and checked. The app's structure and build follow [ADR-0006](adr/0006-structure-and-build.md). The section on signing releases is added with the release workflow's [ADR](glossary.md#adr).
 
 ## Branches and pull requests
 
@@ -19,7 +19,7 @@ Decided by Thomas, 8 November 2026 (first elicitation pass, question 2).
 - [release-please](glossary.md#release-please) reads the commits on `main`. It keeps a [release PR](glossary.md#release-pr) open with the next version and the new `CHANGELOG.md` entries.
 - Versions follow [SemVer](glossary.md#semver), starting at 0.1.0. Before 1.0, `feat` raises the minor version (0.1.0 → 0.2.0) and `fix` the patch version (0.2.0 → 0.2.1). A breaking change also raises only the minor version.
 - `feat`, `fix`, `perf` and `docs` appear in the changelog. `build`, `ci`, `test`, `refactor` and `chore` are hidden, since a learner reading the changelog does not need them.
-- The version is written by release-please only. It lives in `app/build.gradle.kts`, on the line marked `x-release-please-version` ([ADR-0006](adr/0006-structure-and-build.md)). Until phase 0 adds that file, only `.release-please-manifest.json` holds it.
+- The version is written by release-please only. It lives in `app/build.gradle.kts`, on the line marked `x-release-please-version` ([ADR-0006](adr/0006-structure-and-build.md)). The [version code](glossary.md#version-code) is derived from it, see [The version](#the-version).
 
 ## Releases
 
@@ -37,17 +37,123 @@ Decided by Thomas, 8 November 2026, following the rules of his other projects.
 - **Links.** Requirements, open decisions, ADRs and other documents are referred to by links, never by bare IDs or paths.
 - **Diagrams.** Architecture, data flow and workflows get a Mermaid diagram. Measured results, such as timings for [REQ-009](requirements.md#req-009), get a chart.
 
+## Building and testing
+
+Set up in phase 0 of the [roadmap](roadmap.md#phase-0-foundations), 9 November 2026, as [ADR-0006](adr/0006-structure-and-build.md) decided. The app is written in [Kotlin](glossary.md#kotlin) and built with [Gradle](glossary.md#gradle). The [fix engine](glossary.md#fix-engine) is plain JavaScript and needs no build.
+
+### How the sources become an APK
+
+Gradle itself knows nothing about Android. The Android Gradle Plugin, declared in `gradle/libs.versions.toml`, adds the Android steps, as the .NET SDK adds its targets to MSBuild. `./gradlew assembleDebug` then runs these steps:
+
+```mermaid
+flowchart LR
+  kt["Kotlin code<br/>app/src/main/java/"] -->|"Kotlin compiler<br/>with the Compose plugin"| cls[".class files<br/>(JVM bytecode)"]
+  cls -->|"D8"| dex["classes.dex<br/>(Android bytecode)"]
+  res["resources and manifest<br/>app/src/main/res/,<br/>AndroidManifest.xml"] -->|"aapt2"| bin["compiled resources<br/>and the R class"]
+  web["engine/*.js, fixes/*.json"] -->|"collectWebAssets,<br/>copied as they are"| assets["assets/"]
+  dex --> pack["packaging<br/>and signing"]
+  bin --> pack
+  assets --> pack
+  pack --> apk["app-debug.apk"]
+  cls -->|"testDebugUnitTest"| tests["unit tests,<br/>run on the computer"]
+```
+
+Each arrow is one tool. Every box is a set of files.
+
+- **The Kotlin compiler** turns Kotlin into bytecode for the Java virtual machine (JVM), the counterpart of the .NET runtime. Roslyn turns C# into IL in the same way. The Compose plugin rewrites the functions that draw the screens.
+- **D8** converts the JVM bytecode into Android's own bytecode, dex. Android does not run JVM bytecode. On the phone, Android's runtime compiles the dex to machine code, as the .NET runtime compiles IL.
+- **aapt2** compiles the resources and the manifest. It generates the class `R`, through which the code names a resource, e.g. `R.string.app_name`. This is the counterpart of `Resources.Designer.cs` for a `.resx` file.
+- **Packaging** zips everything into the [APK](glossary.md#apk) and signs it, for a debug build with the computer's debug key ([The debug build](#the-debug-build)).
+- **The unit tests** run on the computer's JVM against the `.class` files. They need no phone and no dex.
+
+### The parts and their .NET counterparts
+
+What to read in a pull request: `app/build.gradle.kts`, `AndroidManifest.xml`, the Kotlin code and tests, `engine/fix-engine.js` and the workflows. Files marked *generated* below are written by a tool and never edited by hand. Like a NuGet lock file, they need no review.
+
+| Here | What it is | .NET counterpart |
+|---|---|---|
+| `gradlew`, `gradlew.bat`, `gradle/wrapper/` | *generated* by `gradle wrapper`: the Gradle wrapper, which downloads and runs the one Gradle version the project pins in `gradle-wrapper.properties` | `global.json` plus the `dotnet` command |
+| `settings.gradle.kts` | lists the modules and where libraries come from | the `.sln` file plus `nuget.config` |
+| `build.gradle.kts` (root) | declares the plugins the modules may use | `Directory.Build.props` |
+| `gradle/libs.versions.toml` | the version catalog: every library and plugin version, once | `Directory.Packages.props` |
+| `app/` | the one [Gradle module](glossary.md#gradle-module): all Kotlin code, resources and tests | one project in the solution |
+| `app/build.gradle.kts` | the module's build file: [application ID](glossary.md#application-id), Android versions, version, dependencies | the `.csproj` |
+| `app/src/main/AndroidManifest.xml` | what Android must know before the app starts: the window, the permissions, backup switched off | `Package.appxmanifest` |
+| `app/src/main/java/` | the Kotlin code, one package per building block of the [architecture](architecture.md#5-building-blocks) | the project's source folders, one namespace per folder |
+| `app/src/main/res/` | resources: texts, the backup rules | `.resx` files |
+| `app/src/test/` | unit tests, run on the computer, not on a phone, with JUnit 4 | a separate xUnit test project |
+| `engine/fix-engine.js` | the fix engine, shipped as written | a script in `wwwroot` |
+| `engine/package.json`, `engine/tsconfig.json` | the engine's type check, in CI only | a Roslyn analyser's configuration |
+| `engine/package-lock.json` | *generated* by `npm install`: the exact versions of TypeScript and what it needs | `packages.lock.json` |
+| `fixes/*.json` | one file per [fix](glossary.md#fix), shipped as written | content files |
+
+```text
+skip-the-fluff/
+├── settings.gradle.kts, build.gradle.kts, gradlew   the Gradle build
+├── gradle/libs.versions.toml                       versions
+├── app/                                            the one module
+│   ├── build.gradle.kts
+│   └── src/
+│       ├── main/java/io/github/thomaswening/skipthefluff/shell/          one package per block
+│       └── test/java/io/github/thomaswening/skipthefluff/architecture/   architecture tests
+├── engine/fix-engine.js                            copied into the APK as assets/engine/
+└── fixes/*.json                                    copied into the APK as assets/fixes/
+```
+
+Gradle copies `engine/*.js` and `fixes/*.json` into the [APK](glossary.md#apk)'s assets with the task `collectWebAssets`, comparable to `CopyToOutputDirectory`. Nothing else in those folders goes into the app.
+
+### What you need
+
+- Microsoft OpenJDK 21, with `JAVA_HOME` pointing at it, e.g. `C:/Program Files/Microsoft/jdk-21.0.13.21-hotspot`. Gradle runs on it, as MSBuild runs on the .NET SDK.
+- The Android SDK, e.g. in `%LOCALAPPDATA%/Android/Sdk`, with platform 36. Gradle finds it through `ANDROID_HOME` or through a file `local.properties` in the repository root with the line `sdk.dir=C:/Users/<you>/AppData/Local/Android/Sdk`. `local.properties` is not committed.
+- Node 22, only for the engine's type check. The Gradle build does not need it.
+
+The first build downloads Gradle and every library, about 1 GB, into `GRADLE_USER_HOME` (by default `~/.gradle`). This is Gradle's counterpart of the NuGet package cache.
+
+### Building and running the tests
+
+```bash
+./gradlew assembleDebug testDebugUnitTest
+```
+
+`assembleDebug` builds the debug APK, `app/build/outputs/apk/debug/app-debug.apk`. `testDebugUnitTest` runs the unit tests, comparable to `dotnet test`. The test report is in `app/build/reports/tests/testDebugUnitTest/index.html`. In PowerShell, write `.\gradlew.bat` instead of `./gradlew`.
+
+The [architecture tests](glossary.md#architecture-test) are unit tests too, written with Konsist, the Kotlin counterpart of NetArchTest. Each rule of the [architecture](architecture.md#dependency-rules) gets one test class named after the rule, in the package `architecture`. `NetworkAccessTest` is the pattern: it reads the production code and fails if any file outside the package `update` imports `java.net` or an HTTP library. A rule that has no test is not enforced.
+
+### The debug build
+
+A debug build is signed with a debug key that the Android SDK creates on each computer, not with the [signing key](glossary.md#signing-key) of the releases. Its application ID is `io.github.thomaswening.skipthefluff.debug` and its version ends in `-debug`. So it installs next to a release. With the release's own ID it would block the release's updates, because Android refuses an update signed with another key. It is a separate app with its own sign-in and settings.
+
+To install it on the phone, download the APK from a [build workflow](#build-workflow) run (the run's page, then Artifacts, then `debug-apk`, a zip that holds the APK) or build it locally. Then copy it to the phone and open it there, as for any [sideloaded](glossary.md#sideloading) app.
+
+### The version
+
+The version is the line `versionName = "0.1.0" // x-release-please-version` in `app/build.gradle.kts`. Only [release-please](glossary.md#release-please) changes it, in the [release PR](glossary.md#release-pr). Its generic updater, listed under `extra-files` in `release-please-config.json`, rewrites the version on every line marked `x-release-please-version`. It is the `<Version>` of a `.csproj`.
+
+The [version code](glossary.md#version-code) is computed from it in the same file, by `versionCodeOf`: major × 1,000,000 + minor × 1,000 + patch.
+
+| `versionName` | Version code | Result |
+|---|---|---|
+| `0.1.0` | 1,000 | accepted |
+| `0.2.1` | 2,001 | accepted |
+| `1.0.0` | 1,000,000 | accepted |
+| `0.1000.0` | none | the build fails: minor and patch must stay below 1,000 |
+| `0.2` | none | the build fails: the version is not major.minor.patch |
+
 ## Tools and checks
 
-Four GitHub workflows check pull requests and `main`. Each workflow file's header links its section here.
+Five GitHub workflows check pull requests and `main`. Each workflow file's header links its section here.
 
 ```mermaid
 flowchart LR
   pr["pull request<br/>opened or edited"] --> title["pr-title.yml"]
   pr --> docs["docs-check.yml"]
+  pr --> build["build.yml"]
   title --> red["red: the pull request<br/>cannot be merged"]
   docs --> red
+  build --> red
   push["merge to main"] --> rp["release-please.yml"]
+  push --> build
   rp --> rpr["release PR<br/>opened or updated"]
   cron["Mondays 06:00 UTC<br/>or by hand"] --> weekly["docs-weekly.yml"]
   weekly --> issue["on failure: issue<br/>'Weekly docs check failed'"]
@@ -78,6 +184,63 @@ When the release PR is merged, the same workflow creates the tag and the GitHub 
 
 **When it fails:** the run's log names the cause. The usual one is the repository setting "Allow GitHub Actions to create and approve pull requests" (Settings → Actions → General) being off. It was switched on by Claude on Thomas's instruction, 8 November 2026. A commit on `main` whose message is not a Conventional Commit is skipped without failing. It is then missing from the changelog, which can be fixed by editing the release PR's text before merging it.
 
+### Build workflow
+
+`.github/workflows/build.yml` runs on every pull request and on every push to `main`. It has two jobs, which run side by side. A red job blocks the merge.
+
+```mermaid
+flowchart LR
+  pr["pull request or<br/>push to main"] --> app["job app:<br/>gradlew assembleDebug testDebugUnitTest"]
+  pr --> types["job engine-types:<br/>npm ci, npm run typecheck"]
+  app --> apk["artifact debug-apk"]
+  app -->|"on failure"| reports["artifact test-reports"]
+```
+
+The job `app` sets up Microsoft OpenJDK 21 and Gradle, which caches the libraries between runs. It keeps the debug APK as the artifact `debug-apk` for 90 days. When it fails, it keeps the test reports as `test-reports`.
+
+**Rule: the debug APK builds.** Kotlin that does not compile, a missing resource or a broken build file fails the job.
+
+| Change | Result | Why |
+|---|---|---|
+| a Kotlin file that compiles | accepted | |
+| a call to a function that does not exist | reported | compile error |
+| `libs.okhttp` in `app/build.gradle.kts` without an entry in `gradle/libs.versions.toml` | reported | the catalog has no such entry |
+| `versionName = "0.2"` | reported | `versionCodeOf` needs major.minor.patch |
+
+**Rule: every unit test passes, the architecture tests included.**
+
+| Change | Result | Why |
+|---|---|---|
+| a file in `update` that imports `java.net.URL` | accepted | the network rule allows it there |
+| a file in `shell` that imports `java.net.URL` | reported | `NetworkAccessTest`: only `update` may talk to the network |
+| a unit test whose assertion fails | reported | |
+
+**When it fails:** the log of the step "Build the debug APK and run the tests" names the file and line of a compile error. A failed test is named above `> Task :app:testDebugUnitTest FAILED`. An architecture test also names the rule and the files that break it, e.g. `Assert 'only the update package imports java_net or an HTTP library' was violated`. Download `test-reports` for the full report. Fix the code, not the test. A test changes only when its rule changed, which needs the ADR or the [architecture](architecture.md#dependency-rules) changed first.
+
+**Running it locally:** see [Building and running the tests](#building-and-running-the-tests).
+
+### Engine type check
+
+The job `engine-types` of the [build workflow](#build-workflow) runs TypeScript's compiler over `engine/fix-engine.js` without producing anything (`tsc` with `checkJs` and `noEmit`, set in `engine/tsconfig.json`). It reads the types from the JSDoc comments, e.g. `@typedef` and `@type`. It works like a Roslyn analyser with warnings treated as errors. The TypeScript version is pinned in `engine/package.json` and `engine/package-lock.json`.
+
+**Rule: the engine type-checks in strict mode.**
+
+| Code | Result | Why |
+|---|---|---|
+| `action: "hide"` in a value of type `Fix` | accepted | `action` is `"hide"` or `"press"` |
+| `action: "hid"` | reported | `Type '"hid"' is not assignable to type '"hide" \| "press"'` |
+| `document.querySelector("a").click()` | reported | `Object is possibly 'null'`: check the result first |
+| `const link = document.querySelector("a"); if (link) link.click();` | accepted | the check rules out `null` |
+| a function parameter without a JSDoc `@param` type | reported | strict mode forbids an implicit `any` |
+
+**When it fails:** each finding is one line, `fix-engine.js(line,column): error TSnnnn: <what is wrong>`. Correct the code or its JSDoc type. Do not switch off `strict` or add `// @ts-ignore`.
+
+**Running it locally** needs Node 22:
+
+```bash
+cd engine && npm ci && npm run typecheck
+```
+
 ### Docs check
 
 `tools/check_docs.py` checks the documents for drift: broken links and anchors, requirement IDs that do not exist, ADRs out of step with their index, Mermaid diagrams that do not render, the requirements' version line, and terms that are not linked to the glossary. It is a copy of the checker in Thomas's claude-config repository (the `project-docs` skill), whose documentation describes every rule with its cases. `head -1 tools/check_docs.py` shows which version this copy is.
@@ -103,5 +266,7 @@ A glossary word used in its everyday sense is exempted where it occurs: `<!-- gl
 **Running it locally** needs Python 3. Node's `npx` is needed for the Mermaid check. Without it, the check is skipped locally with a note.
 
 ```bash
-python tools/check_docs.py . --base origin/main
+python tools/check_docs.py . --base origin/main --source "*.kts" "app/*.kts" "gradle/*.toml" "app/src/main/**/*.kt" "app/src/main/**/*.xml" "engine/*.js" --tests "app/src/test/**/*.kt" --markdown "fixes/*.md" --repo-url https://github.com/thomaswening/skip-the-fluff
 ```
+
+The globs are the same as in `docs-check.yml`. `--source` and `--tests` name the code whose links into `docs/` and whose requirement and ADR IDs are checked. A test that names a requirement ID that does not exist fails the check, e.g. `names REQ-099, which is not defined`. An ID in a code comment without a link to its definition is a warning.

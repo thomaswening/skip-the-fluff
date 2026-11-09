@@ -27,3 +27,4 @@ JDK  # Java Development Kit, named only as a build requirement
 HTTP  # general web vocabulary
 XML  # general computing vocabulary
 XAML  # .NET markup language, named only for comparison
+JVM  # Java virtual machine, spelt out where it is first used (development.md)
