@@ -41,11 +41,38 @@ Decided by Thomas, 8 November 2026, following the rules of his other projects.
 
 Set up in phase 0 of the [roadmap](roadmap.md#phase-0-foundations), 9 November 2026, as [ADR-0006](adr/0006-structure-and-build.md) decided. The app is written in [Kotlin](glossary.md#kotlin) and built with [Gradle](glossary.md#gradle). The [fix engine](glossary.md#fix-engine) is plain JavaScript and needs no build.
 
+### How the sources become an APK
+
+Gradle itself knows nothing about Android. The Android Gradle Plugin, declared in `gradle/libs.versions.toml`, adds the Android steps, as the .NET SDK adds its targets to MSBuild. `./gradlew assembleDebug` then runs these steps:
+
+```mermaid
+flowchart LR
+  kt["Kotlin code<br/>app/src/main/java/"] -->|"Kotlin compiler<br/>with the Compose plugin"| cls[".class files<br/>(JVM bytecode)"]
+  cls -->|"D8"| dex["classes.dex<br/>(Android bytecode)"]
+  res["resources and manifest<br/>app/src/main/res/,<br/>AndroidManifest.xml"] -->|"aapt2"| bin["compiled resources<br/>and the R class"]
+  web["engine/*.js, fixes/*.json"] -->|"collectWebAssets,<br/>copied as they are"| assets["assets/"]
+  dex --> pack["packaging<br/>and signing"]
+  bin --> pack
+  assets --> pack
+  pack --> apk["app-debug.apk"]
+  cls -->|"testDebugUnitTest"| tests["unit tests,<br/>run on the computer"]
+```
+
+Each arrow is one tool. Every box is a set of files.
+
+- **The Kotlin compiler** turns Kotlin into bytecode for the Java virtual machine (JVM), the counterpart of the .NET runtime. Roslyn turns C# into IL in the same way. The Compose plugin rewrites the functions that draw the screens.
+- **D8** converts the JVM bytecode into Android's own bytecode, dex. Android does not run JVM bytecode. On the phone, Android's runtime compiles the dex to machine code, as the .NET runtime compiles IL.
+- **aapt2** compiles the resources and the manifest. It generates the class `R`, through which the code names a resource, e.g. `R.string.app_name`. This is the counterpart of `Resources.Designer.cs` for a `.resx` file.
+- **Packaging** zips everything into the [APK](glossary.md#apk) and signs it, for a debug build with the computer's debug key ([The debug build](#the-debug-build)).
+- **The unit tests** run on the computer's JVM against the `.class` files. They need no phone and no dex.
+
 ### The parts and their .NET counterparts
+
+What to read in a pull request: `app/build.gradle.kts`, `AndroidManifest.xml`, the Kotlin code and tests, `engine/fix-engine.js` and the workflows. Files marked *generated* below are written by a tool and never edited by hand. Like a NuGet lock file, they need no review.
 
 | Here | What it is | .NET counterpart |
 |---|---|---|
-| `gradlew`, `gradlew.bat`, `gradle/wrapper/` | the Gradle wrapper: downloads and runs the one Gradle version the project pins | `global.json` plus the `dotnet` command |
+| `gradlew`, `gradlew.bat`, `gradle/wrapper/` | *generated* by `gradle wrapper`: the Gradle wrapper, which downloads and runs the one Gradle version the project pins in `gradle-wrapper.properties` | `global.json` plus the `dotnet` command |
 | `settings.gradle.kts` | lists the modules and where libraries come from | the `.sln` file plus `nuget.config` |
 | `build.gradle.kts` (root) | declares the plugins the modules may use | `Directory.Build.props` |
 | `gradle/libs.versions.toml` | the version catalog: every library and plugin version, once | `Directory.Packages.props` |
@@ -57,6 +84,7 @@ Set up in phase 0 of the [roadmap](roadmap.md#phase-0-foundations), 9 November 2
 | `app/src/test/` | unit tests, run on the computer, not on a phone, with JUnit 4 | a separate xUnit test project |
 | `engine/fix-engine.js` | the fix engine, shipped as written | a script in `wwwroot` |
 | `engine/package.json`, `engine/tsconfig.json` | the engine's type check, in CI only | a Roslyn analyser's configuration |
+| `engine/package-lock.json` | *generated* by `npm install`: the exact versions of TypeScript and what it needs | `packages.lock.json` |
 | `fixes/*.json` | one file per [fix](glossary.md#fix), shipped as written | content files |
 
 ```text
