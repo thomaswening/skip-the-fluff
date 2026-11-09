@@ -3,6 +3,7 @@ package io.github.thomaswening.skipthefluff.shell
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -76,6 +77,10 @@ class MainActivity : ComponentActivity() {
 
     private fun createWebView(): WebView {
         val view = WebView(this)
+        // Fill the parent, not "as tall as the content", which AndroidView would otherwise assume. With
+        // the latter, the WebView reports the CSS unit vh as 0, and the website's lesson layout,
+        // sized in vh, slides under its own header (found on the reference device, 10 November 2026).
+        view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         // The website is a JavaScript app that keeps its state in the page's storage.
         view.settings.javaScriptEnabled = true
         view.settings.domStorageEnabled = true
