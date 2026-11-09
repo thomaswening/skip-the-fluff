@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Light by day, dark at night, following the phone's dark-mode setting. The WebView tells the
+        website the phone's mode (prefers-color-scheme) from this theme, so a theme that is always
+        dark would show the website dark in light mode too. No action bar: the website fills the window.
+    -->
+    <style name="Theme.SkipTheFluff" parent="android:Theme.DeviceDefault.DayNight">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

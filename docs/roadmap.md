@@ -40,7 +40,7 @@ The app shows [the website](glossary.md#the-website) full screen in Android's [W
 
 - Requirements: [REQ-004](requirements.md#req-004), [REQ-013](requirements.md#req-013) (outside lessons), [REQ-014](requirements.md#req-014), [REQ-015](requirements.md#req-015), [REQ-016](requirements.md#req-016), [REQ-021](requirements.md#req-021), [REQ-037](requirements.md#req-037) (outside lessons), [REQ-038](requirements.md#req-038), [REQ-039](requirements.md#req-039), [REQ-044](requirements.md#req-044), [REQ-045](requirements.md#req-045)
 - Resolves: nothing
-- Needs: [OPEN-H](requirements.md#open-h), for orientation only; Thomas settles it at the start of the phase by turning the phone during a lesson in Chrome
+- Needs: [OPEN-H](requirements.md#open-h), for orientation only; resolved at the start of the phase, 9 November 2026: the website can be used in landscape
 
 ### Phase 2: Fix engine and first fix
 
@@ -117,7 +117,7 @@ Each of these is a COULD and starts with its open decision. The phases are numbe
 | Decision | Needed before |
 |---|---|
 | The app's structure and build ([ADR-0006](adr/0006-structure-and-build.md), decided 9 November 2026) | Phase 0 |
-| [OPEN-H](requirements.md#open-h) | Phase 1 (orientation) |
+| [OPEN-H](requirements.md#open-h) (resolved 9 November 2026: landscape works) | Phase 1 (orientation) |
 | Testing fixes and the engine (ADR to be written) | Phase 2 |
 | [OPEN-A](requirements.md#open-a) | Phase 3, each new fix; collected continuously |
 | [OPEN-J](requirements.md#open-j) | Phase 4 (the report) |
