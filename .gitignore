@@ -6,5 +6,12 @@ local.properties
 .idea/
 *.iml
 
+# Keystores, so that the release key can never be committed by mistake (ADR-0005). The shared debug
+# key is the one exception (docs/development.md, "The debug build").
+*.p12
+*.jks
+*.keystore
+!app/debug.keystore
+
 # The engine's type check (npm)
 engine/node_modules/
