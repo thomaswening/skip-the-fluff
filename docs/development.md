@@ -263,6 +263,15 @@ It runs in two workflows:
 
 A glossary word used in its everyday sense is exempted where it occurs: `<!-- glossary-ignore: word -->` in that paragraph or list item.
 
+**External links** (weekly only) follow one rule: every external link in `README.md` and `docs/` answers with a success status. A link whose site refuses automated clients is exempted by a line in `.lycheeignore` with the reason and the date it was checked in a browser. It is then checked by hand only.
+
+| lychee reports | Fix |
+|---|---|
+| `[404]`, or a host that does not resolve | the page is gone: link its new address or an archived copy, e.g. on the Wayback Machine |
+| `[403]` or `[429]` for a page that loads in a browser | the site blocks automated clients: add its address to `.lycheeignore` with the reason and the date |
+| `[403]` or `[429]` for a page that does not load in a browser either | the page is gone: treat it as a 404 |
+| the step fails before any link is checked, e.g. `curl` exit 22 while installing lychee | a download hiccup, not a finding: run the workflow again by hand and close the issue if it passes |
+
 **Running it locally** needs Python 3. Node's `npx` is needed for the Mermaid check. Without it, the check is skipped locally with a note.
 
 ```bash
