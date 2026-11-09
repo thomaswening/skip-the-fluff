@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Cloud backup and device transfer are off ([ADR-0006](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/adr/0006-structure-and-build.md), point 5): otherwise Android would copy
+        the store and the sign-in cookies to Google Drive or to a new phone, which [REQ-020](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-020) forbids.
+        allowBackup="false" covers Android 10 and 11; Android 12 and later read dataExtractionRules.
+    -->
+    <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.NoActionBar">
+        <!--
+            The one window handles every configuration change itself, so Android never rebuilds it
+            and the WebView survives ([ADR-0003](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/adr/0003-lesson-survives-switch.md), point 1).
+        -->
+        <activity
+            android:name=".shell.MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|fontScale|density|locale|layoutDirection">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

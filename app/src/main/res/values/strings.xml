@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Skip the Fluff</string>
+    <string name="placeholder">Skip the Fluff %1$s. The website follows in phase 1.</string>
+</resources>

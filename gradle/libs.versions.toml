@@ -1,0 +1,23 @@
+# Every library and plugin version of the build, in one place ([ADR-0006](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/adr/0006-structure-and-build.md), point 1).
+# The .NET counterpart is Directory.Packages.props.
+
+[versions]
+agp = "8.13.0"
+kotlin = "2.2.20"
+activityCompose = "1.10.1"
+composeBom = "2025.09.00"
+junit = "4.13.2"
+konsist = "0.17.3"
+
+[libraries]
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+konsist = { group = "com.lemonappdev", name = "konsist", version.ref = "konsist" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

@@ -120,6 +120,8 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 
 <a id="user-agent"></a>**user agent** *(engineering)*: the text a browser sends with every request to say which browser it is. Android's [WebView](#webview) adds the marker `wv` to it. Example: Google refuses its sign-in when the user agent has the `wv` marker ([ADR-0001](adr/0001-android-webview.md)).
 
+<a id="version-code"></a>**version code** *(domain)*: the whole number by which Android decides whether an [APK](#apk) is newer than the installed app. It must rise with every release. Skip the Fluff derives it from the [SemVer](#semver) version. Example: 0.2.1 → 2,001 ([ADR-0006](adr/0006-structure-and-build.md)).
+
 <a id="webview"></a>**WebView** *(domain)*: an Android component that shows web pages inside an app, comparable to WebView2 in a WPF window. The app can run its own CSS and JavaScript in the page. Example: Skip the Fluff shows [the website](#the-website) in a WebView and hides its prompts with injected CSS.
 
 - Not to be confused with: [Custom Tab](#custom-tab)

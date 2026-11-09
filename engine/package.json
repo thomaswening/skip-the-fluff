@@ -1,0 +1,12 @@
+{
+  "name": "skip-the-fluff-engine",
+  "private": true,
+  "description": "Type check of the fix engine. The Gradle build does not use this file.",
+  "license": "GPL-3.0-only",
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}
