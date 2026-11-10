@@ -8,4 +8,7 @@
          The button opens the app's page in Android's settings, where Permissions leads to the microphone. -->
     <string name="microphone_off">The microphone is off for Skip the Fluff. To speak in exercises, switch it on under Permissions.</string>
     <string name="microphone_off_settings">Settings</string>
+    <!-- Shown when the website's page process was lost three times in a row, each within a minute of loading
+         (ADR-0003, point 4). The app then stops reloading until the learner returns to it. Must stay short. -->
+    <string name="website_not_loaded">The website could not be loaded. Leave the app and return to try again.</string>
 </resources>

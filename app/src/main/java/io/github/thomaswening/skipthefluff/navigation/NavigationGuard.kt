@@ -3,6 +3,9 @@ package io.github.thomaswening.skipthefluff.navigation
 /** The website's own domain. Its subdomains, such as www and support, belong to the website too. */
 private const val WEBSITE_DOMAIN = "duolingo.com"
 
+/** The page the app opens: the website's start page, which shows the learning path once signed in. */
+internal const val START_URL = "https://www.duolingo.com/"
+
 /**
  * Whether a navigation leaves the website and opens in the phone's default browser
  * ([REQ-015](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-015)).
@@ -17,9 +20,14 @@ private const val WEBSITE_DOMAIN = "duolingo.com"
  */
 fun opensInDefaultBrowser(host: String?, isMainFrame: Boolean): Boolean {
     if (host == null || !isMainFrame) return false
-    return !belongsToWebsite(host.lowercase())
+    return !belongsToWebsite(host)
 }
 
-// Compares whole labels, so "evilduolingo.com" and "duolingo.com.evil.example" are other hosts.
-private fun belongsToWebsite(host: String): Boolean =
-    host == WEBSITE_DOMAIN || host.endsWith(".$WEBSITE_DOMAIN")
+/**
+ * Whether a host is duolingo.com or one of its subdomains, in any letter case. Compares whole labels,
+ * so "evilduolingo.com" and "duolingo.com.evil.example" are other hosts.
+ */
+internal fun belongsToWebsite(host: String): Boolean {
+    val lowercaseHost = host.lowercase()
+    return lowercaseHost == WEBSITE_DOMAIN || lowercaseHost.endsWith(".$WEBSITE_DOMAIN")
+}
