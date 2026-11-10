@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Skip the Fluff</string>
+    <!-- Shown when a page outside Duolingo should open in the browser, but the phone has none (REQ-015).
+         Android cuts a toast off after two lines, so this must stay short. -->
+    <string name="no_browser">No browser can open this page. Install one, or switch one on, and try again.</string>
 </resources>

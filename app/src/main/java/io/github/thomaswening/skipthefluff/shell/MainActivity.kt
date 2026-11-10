@@ -10,6 +10,7 @@ import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -24,6 +25,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import io.github.thomaswening.skipthefluff.R
 import io.github.thomaswening.skipthefluff.navigation.opensInDefaultBrowser
 
 /** The page the app opens: the website's start page, which shows the learning path once signed in. */
@@ -121,7 +123,9 @@ class MainActivity : ComponentActivity() {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, url))
         } catch (noBrowser: ActivityNotFoundException) {
-            // No app on the phone opens web pages. The learner stays on the current page.
+            // No app on the phone opens web pages. The learner stays on the current page and is told
+            // why nothing opened and what to do.
+            Toast.makeText(this, R.string.no_browser, Toast.LENGTH_LONG).show()
         }
     }
 }
