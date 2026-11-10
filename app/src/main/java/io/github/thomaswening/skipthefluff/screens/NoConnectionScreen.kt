@@ -1,5 +1,6 @@
 package io.github.thomaswening.skipthefluff.screens
 
+import android.os.SystemClock
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,12 +12,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.thomaswening.skipthefluff.R
+import kotlinx.coroutines.delay
 
 /** The space around the screen's content and between its lines. */
 private val SPACING = 24.dp
@@ -34,11 +42,11 @@ private val SPINNER_SIZE = 20.dp
  * does not exist yet. Phase 4 draws it above both the website and this screen, so that it stays
  * available here.
  *
- * @param screen the shown screen: what the button reloads and whether it is reloading.
+ * @param state the shown screen: what the button reloads and whether it is reloading.
  * @param onReload called when the learner taps the button.
  */
 @Composable
-internal fun NoConnectionScreen(screen: NoConnection.Shown, onReload: () -> Unit, modifier: Modifier = Modifier) {
+internal fun NoConnectionScreen(state: NoConnectionState.Shown, onReload: () -> Unit, modifier: Modifier = Modifier) {
     Surface(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize().padding(SPACING),
@@ -47,14 +55,37 @@ internal fun NoConnectionScreen(screen: NoConnection.Shown, onReload: () -> Unit
         ) {
             Text(stringResource(R.string.no_connection_title), style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
             Text(stringResource(R.string.no_connection_text), style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-            // While reloading, the button shows a spinner and takes no tap, so that one tap starts one load.
-            Button(onClick = onReload, enabled = !screen.isReloading) {
-                if (screen.isReloading) {
-                    CircularProgressIndicator(modifier = Modifier.size(SPINNER_SIZE))
-                } else {
-                    Text(stringResource(R.string.no_connection_reload))
-                }
-            }
+            ReloadButton(state.isReloading, onReload)
+        }
+    }
+}
+
+/**
+ * The button that reloads the page. While the page reloads, and for at least [MIN_SPINNER_MILLIS] after
+ * the tap, it shows a spinner and takes no tap, so that the learner sees the tap was taken and one tap
+ * starts one load.
+ */
+@Composable
+private fun ReloadButton(isReloading: Boolean, onReload: () -> Unit) {
+    // remember keeps a value across redraws, like a field of a WPF control.
+    var spinnerStartedAtMillis by remember { mutableLongStateOf(0L) }
+    var keepsSpinner by remember { mutableStateOf(false) }
+    // Runs each time isReloading changes. After a failed reload, it waits out the rest of the minimum.
+    LaunchedEffect(isReloading) {
+        if (isReloading) {
+            spinnerStartedAtMillis = SystemClock.elapsedRealtime()
+            keepsSpinner = true
+            return@LaunchedEffect
+        }
+        delay(remainingSpinnerMillis(SystemClock.elapsedRealtime() - spinnerStartedAtMillis))
+        keepsSpinner = false
+    }
+    val showsSpinner = isReloading || keepsSpinner
+    Button(onClick = onReload, enabled = !showsSpinner) {
+        if (showsSpinner) {
+            CircularProgressIndicator(modifier = Modifier.size(SPINNER_SIZE))
+        } else {
+            Text(stringResource(R.string.no_connection_reload))
         }
     }
 }

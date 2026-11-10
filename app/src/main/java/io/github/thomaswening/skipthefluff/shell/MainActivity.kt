@@ -57,12 +57,9 @@ import io.github.thomaswening.skipthefluff.permissions.DeviceAnswer
 import io.github.thomaswening.skipthefluff.permissions.answerAfterDialog
 import io.github.thomaswening.skipthefluff.permissions.answerDeviceRequest
 import io.github.thomaswening.skipthefluff.permissions.tellsWhereToSwitchMicrophoneOn
-import io.github.thomaswening.skipthefluff.screens.FailedAddress
-import io.github.thomaswening.skipthefluff.screens.NoConnection
 import io.github.thomaswening.skipthefluff.screens.NoConnectionScreen
-import io.github.thomaswening.skipthefluff.screens.afterLoadFailed
-import io.github.thomaswening.skipthefluff.screens.afterLoadFinished
-import io.github.thomaswening.skipthefluff.screens.afterLoadStarted
+import io.github.thomaswening.skipthefluff.screens.NoConnectionState
+import io.github.thomaswening.skipthefluff.screens.PageAddress
 
 /**
  * The app's one window. It shows the website full screen in one WebView that lives as long as the
@@ -115,7 +112,7 @@ class MainActivity : ComponentActivity() {
     // Whether the no-connection screen covers the website, and what its button reloads
     // ([REQ-044](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-044)).
     // Compose state too. It outlives a lost WebView, so a new WebView still sits beneath the screen.
-    private var noConnection by mutableStateOf<NoConnection>(NoConnection.Hidden)
+    private var noConnectionState by mutableStateOf<NoConnectionState>(NoConnectionState.Hidden)
 
     // Shows Android's permission dialog and calls back with the learner's answer. Registered when the
     // window is created, as Android requires, so the answer arrives even if the window was paused meanwhile.
@@ -137,7 +134,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         onBackPressedDispatcher.addCallback(this, backInWebsite)
         showWebsite(savedInstanceState)
-        setContent { WebsiteScreen(webView, noConnection, ::onReloadTapped, showsMicrophoneHint, ::onMicrophoneHintClosed) }
+        setContent { WebsiteScreen(webView, noConnectionState, ::reloadFailedPage, showsMicrophoneHint, ::onMicrophoneHintClosed) }
     }
 
     // On a restart after Android ended the whole app in the background, the WebView's page history comes
@@ -264,17 +261,17 @@ class MainActivity : ComponentActivity() {
         // of the whole page passes through onPageStarted and onPageFinished. The website changes its
         // address without a new load as the learner moves around, so most taps start none.
         override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
-            noConnection = afterLoadStarted(noConnection)
+            noConnectionState = noConnectionState.afterLoadStarted()
         }
 
         override fun onPageFinished(view: WebView, url: String?) {
-            noConnection = afterLoadFinished(noConnection)
+            noConnectionState = noConnectionState.afterLoadFinished()
         }
 
         // Called for the page and for each image, script or other part of it that could not be loaded.
         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
-            val failedAddress = FailedAddress(request.url.scheme, request.url.host, request.url.toString())
-            noConnection = afterLoadFailed(noConnection, request.isForMainFrame, failedAddress)
+            val address = PageAddress(request.url.scheme, request.url.host, request.url.toString())
+            noConnectionState = noConnectionState.afterLoadFailed(address, request.isForMainFrame)
         }
 
         // Android ended the renderer process, to free memory or because it crashed. Returning true tells
@@ -327,11 +324,12 @@ class MainActivity : ComponentActivity() {
     // after a failed load: the app never retries by itself
     // ([REQ-044](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-044)).
     // Without a WebView, after a lost renderer process, the renderer recovery loads the page instead.
-    private fun onReloadTapped() {
-        val screen = noConnection as? NoConnection.Shown ?: return
+    private fun reloadFailedPage() {
+        val state = noConnectionState as? NoConnectionState.Shown ?: return
         val view = webView ?: return
-        noConnection = afterLoadStarted(screen)
-        view.loadUrl(screen.reloadAddress)
+        if (state.isReloading) return
+        noConnectionState = state.afterLoadStarted()
+        view.loadUrl(state.reloadUrl)
     }
 
     private fun onMicrophoneHintClosed(learnerChoseSettings: Boolean) {
@@ -361,7 +359,7 @@ class MainActivity : ComponentActivity() {
  * The WebView fills the window inside the system bars and the keyboard, in the system's colours.
  *
  * @param webView the WebView to show, or null while none is there after a lost renderer process.
- * @param noConnection whether the no-connection screen covers the WebView
+ * @param noConnectionState whether the no-connection screen covers the WebView
  *   ([REQ-044](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-044)).
  * @param onReload called when the learner taps that screen's button.
  * @param showsMicrophoneHint whether to show the bar that says where to switch the microphone on
@@ -371,7 +369,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun WebsiteScreen(
     webView: WebView?,
-    noConnection: NoConnection,
+    noConnectionState: NoConnectionState,
     onReload: () -> Unit,
     showsMicrophoneHint: Boolean,
     onMicrophoneHintClosed: (learnerChoseSettings: Boolean) -> Unit,
@@ -385,7 +383,7 @@ private fun WebsiteScreen(
                 // it. Without a WebView, the window stays empty in the system's colours.
                 if (webView != null) key(webView) { AndroidView(factory = { webView }, modifier = Modifier.fillMaxSize()) }
                 // Drawn after the WebView, so it covers it. The WebView stays beneath, ready for the reload.
-                if (noConnection is NoConnection.Shown) NoConnectionScreen(noConnection, onReload)
+                if (noConnectionState is NoConnectionState.Shown) NoConnectionScreen(noConnectionState, onReload)
                 MicrophoneHint(showsMicrophoneHint, onMicrophoneHintClosed, Modifier.align(Alignment.BottomCenter))
             }
         }
