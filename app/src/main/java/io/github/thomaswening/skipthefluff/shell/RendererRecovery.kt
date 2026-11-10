@@ -1,7 +1,7 @@
 package io.github.thomaswening.skipthefluff.shell
 
 import io.github.thomaswening.skipthefluff.navigation.START_URL
-import io.github.thomaswening.skipthefluff.navigation.belongsToWebsite
+import io.github.thomaswening.skipthefluff.navigation.isWebsiteAddress
 
 /**
  * How long after a page started loading a loss of its renderer process counts as one more loss in a
@@ -9,9 +9,6 @@ import io.github.thomaswening.skipthefluff.navigation.belongsToWebsite
  * while the learner is in another app ends it minutes later. Decided by Thomas, 10 November 2026.
  */
 internal const val QUICK_LOSS_MILLIS = 60_000L
-
-/** The only scheme the app reloads. The website is served over HTTPS only. */
-private const val WEBSITE_SCHEME = "https"
 
 /** The number of losses in a row after which the app tries the start page instead of the last address. */
 private const val LOSSES_BEFORE_START_PAGE = 2
@@ -64,13 +61,3 @@ internal fun recoveryAfterLoss(lossesInARow: Int, lastWebsiteAddress: String?): 
     lossesInARow >= LOSSES_BEFORE_START_PAGE -> RendererRecovery.Reload(START_URL)
     else -> RendererRecovery.Reload(lastWebsiteAddress ?: START_URL)
 }
-
-/**
- * Whether an address the WebView shows is a page of the website that a recovery may reload. An
- * address without a host, such as about:blank, or on another host is never reloaded.
- *
- * @param scheme the address's scheme, such as `https`, or null if it has none.
- * @param host the address's host, such as `www.duolingo.com`, or null if it has none.
- */
-internal fun isWebsiteAddress(scheme: String?, host: String?): Boolean =
-    scheme.equals(WEBSITE_SCHEME, ignoreCase = true) && host != null && belongsToWebsite(host)

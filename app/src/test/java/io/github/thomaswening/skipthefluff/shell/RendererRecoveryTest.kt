@@ -2,8 +2,6 @@ package io.github.thomaswening.skipthefluff.shell
 
 import io.github.thomaswening.skipthefluff.navigation.START_URL
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -73,41 +71,5 @@ class RendererRecoveryTest {
 
         // Assert
         assertEquals(RendererRecovery.Reload(START_URL), recovery)
-    }
-
-    @Test
-    fun `a page of the website over HTTPS may be reloaded`() {
-        // Act
-        val isWebsite = isWebsiteAddress(scheme = "https", host = "www.duolingo.com")
-
-        // Assert
-        assertTrue(isWebsite)
-    }
-
-    @Test
-    fun `an address without a host is not reloaded`() {
-        // Act (about:blank has the scheme "about" and no host)
-        val isWebsite = isWebsiteAddress(scheme = "about", host = null)
-
-        // Assert
-        assertFalse(isWebsite)
-    }
-
-    @Test
-    fun `an address on another host is not reloaded`() {
-        // Act
-        val isWebsite = isWebsiteAddress(scheme = "https", host = "en.wikipedia.org")
-
-        // Assert
-        assertFalse(isWebsite)
-    }
-
-    @Test
-    fun `a page of the website without HTTPS is not reloaded`() {
-        // Act
-        val isWebsite = isWebsiteAddress(scheme = "http", host = "www.duolingo.com")
-
-        // Assert
-        assertFalse(isWebsite)
     }
 }

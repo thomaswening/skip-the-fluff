@@ -11,4 +11,10 @@
     <!-- Shown when the website's page process was lost three times in a row, each within a minute of loading
          (ADR-0003, point 4). The app then stops reloading until the learner returns to it. Must stay short. -->
     <string name="website_not_loaded">The website could not be loaded. Leave the app and return to try again.</string>
+    <!-- The screen shown when a page of the website cannot be loaded (REQ-044). The text names what the learner
+         can check. The button names what it does: it loads the page that failed, once per tap. The website is
+         named by its address, as REQ-027 allows: only to describe what the app works with. -->
+    <string name="no_connection_title">duolingo.com cannot be reached</string>
+    <string name="no_connection_text">Check that Wi-Fi or mobile data is on, then reload the page. If the phone is online, duolingo.com itself may be down: reload again in a few minutes.</string>
+    <string name="no_connection_reload">Reload page</string>
 </resources>

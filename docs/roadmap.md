@@ -62,7 +62,7 @@ One pull request per fix: leaderboard and league popups, streak and reminder nag
 
 ### Phase 4: Menu, settings and reports
 
-The app's own parts around the website: the menu button, with its smaller lesson mode that marks a problem; the settings screen with a switch per fix and the reload after a change; the about screen; the fix status, counted in lessons, and failures recorded by the engine; the report by email or GitHub issue, with the warning about screenshots; the opt-in update check, its first-start dialog and the "Check for updates now" button. At the end of this phase every network request the app makes is checked against [REQ-020](requirements.md#req-020).
+The app's own parts around the website: the menu button, with its smaller lesson mode that marks a problem, also shown over the no-connection screen of [REQ-044](requirements.md#req-044); the settings screen with a switch per fix and the reload after a change; the about screen; the fix status, counted in lessons, and failures recorded by the engine; the report by email or GitHub issue, with the warning about screenshots; the opt-in update check, its first-start dialog and the "Check for updates now" button. At the end of this phase every network request the app makes is checked against [REQ-020](requirements.md#req-020).
 
 - Requirements: [REQ-018](requirements.md#req-018), [REQ-019](requirements.md#req-019), [REQ-020](requirements.md#req-020), [REQ-033](requirements.md#req-033), [REQ-035](requirements.md#req-035), [REQ-036](requirements.md#req-036), [REQ-040](requirements.md#req-040), [REQ-042](requirements.md#req-042)
 - Resolves: nothing
