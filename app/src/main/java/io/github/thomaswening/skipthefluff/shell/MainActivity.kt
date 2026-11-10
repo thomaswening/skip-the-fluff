@@ -33,7 +33,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import io.github.thomaswening.skipthefluff.R
 import io.github.thomaswening.skipthefluff.navigation.opensInDefaultBrowser
 import io.github.thomaswening.skipthefluff.permissions.DeviceAnswer
-import io.github.thomaswening.skipthefluff.permissions.answerAfterLearner
+import io.github.thomaswening.skipthefluff.permissions.answerAfterDialog
 import io.github.thomaswening.skipthefluff.permissions.answerDeviceRequest
 
 /** The page the app opens: the website's start page, which shows the learning path once signed in. */
@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
     private val microphoneDialog = registerForActivityResult(ActivityResultContracts.RequestPermission()) { allowed ->
         val request = requestWaitingForLearner ?: return@registerForActivityResult
         requestWaitingForLearner = null
-        answerWebsite(request, answerAfterLearner(allowed))
+        answerWebsite(request, answerAfterDialog(learnerAllowedInDialog = allowed))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -150,8 +150,8 @@ class MainActivity : ComponentActivity() {
     private inner class DeviceRequestClient : WebChromeClient() {
         override fun onPermissionRequest(request: PermissionRequest) {
             val wantsMicrophone = PermissionRequest.RESOURCE_AUDIO_CAPTURE in request.resources
-            val microphoneAllowed = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-            answerWebsite(request, answerDeviceRequest(wantsMicrophone, microphoneAllowed))
+            val appHoldsMicrophonePermission = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+            answerWebsite(request, answerDeviceRequest(wantsMicrophone, appHoldsMicrophonePermission))
         }
 
         // The website withdrew its request, e.g. because the learner left the exercise while the dialog

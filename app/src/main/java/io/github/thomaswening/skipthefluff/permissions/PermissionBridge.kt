@@ -21,22 +21,28 @@ enum class DeviceAnswer {
  * ([REQ-038](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-038)).
  *
  * @param wantsMicrophone whether the request includes the microphone. A request for the camera and the
- *   microphone together still gets only the microphone.
- * @param microphoneAllowed whether the learner has already given the app Android's microphone permission.
+ *   microphone together gets the microphone only, which Chromium treats as a refusal of the whole request
+ *   (seen on the emulator, 10 November 2026). The website asks for the microphone alone.
+ * @param appHoldsMicrophonePermission whether Android records that the learner gave the app its microphone
+ *   permission in an earlier dialog. Android keeps that choice, and the learner can change it in Android's
+ *   app settings. The app stores nothing and reads it again for each request.
  */
-fun answerDeviceRequest(wantsMicrophone: Boolean, microphoneAllowed: Boolean): DeviceAnswer = when {
+fun answerDeviceRequest(wantsMicrophone: Boolean, appHoldsMicrophonePermission: Boolean): DeviceAnswer = when {
     !wantsMicrophone -> DeviceAnswer.DENY
-    microphoneAllowed -> DeviceAnswer.GRANT_MICROPHONE
+    appHoldsMicrophonePermission -> DeviceAnswer.GRANT_MICROPHONE
     else -> DeviceAnswer.ASK_LEARNER
 }
 
 /**
- * How the app answers the website once the learner has answered Android's microphone dialog.
- * A refusal is passed on as it is: the website then offers its own option to skip speaking exercises for
- * now, which the app never uses on the learner's behalf
+ * How the app answers the website once the learner has tapped an answer in Android's microphone dialog,
+ * which [answerDeviceRequest] asked for. Android stores the answer itself, so the next request goes
+ * through [answerDeviceRequest] again without a dialog.
+ *
+ * A refusal ends here and never opens the dialog again. The website then offers its own option to skip
+ * speaking exercises for now, which the app never uses on the learner's behalf
  * ([REQ-012](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-012)).
  *
- * @param learnerAllowed whether the learner allowed the microphone in Android's dialog.
+ * @param learnerAllowedInDialog whether the learner allowed the microphone in the dialog just shown.
  */
-fun answerAfterLearner(learnerAllowed: Boolean): DeviceAnswer =
-    if (learnerAllowed) DeviceAnswer.GRANT_MICROPHONE else DeviceAnswer.DENY
+fun answerAfterDialog(learnerAllowedInDialog: Boolean): DeviceAnswer =
+    if (learnerAllowedInDialog) DeviceAnswer.GRANT_MICROPHONE else DeviceAnswer.DENY

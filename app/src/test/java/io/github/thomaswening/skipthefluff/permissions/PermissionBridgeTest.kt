@@ -9,9 +9,9 @@ import org.junit.Test
  */
 class PermissionBridgeTest {
     @Test
-    fun `the microphone is passed on when the learner has already allowed it`() {
+    fun `the microphone is passed on when the learner allowed it in an earlier dialog`() {
         // Act
-        val answer = answerDeviceRequest(wantsMicrophone = true, microphoneAllowed = true)
+        val answer = answerDeviceRequest(wantsMicrophone = true, appHoldsMicrophonePermission = true)
 
         // Assert
         assertEquals(DeviceAnswer.GRANT_MICROPHONE, answer)
@@ -20,7 +20,7 @@ class PermissionBridgeTest {
     @Test
     fun `the learner is asked when the website wants the microphone for the first time`() {
         // Act
-        val answer = answerDeviceRequest(wantsMicrophone = true, microphoneAllowed = false)
+        val answer = answerDeviceRequest(wantsMicrophone = true, appHoldsMicrophonePermission = false)
 
         // Assert
         assertEquals(DeviceAnswer.ASK_LEARNER, answer)
@@ -29,7 +29,7 @@ class PermissionBridgeTest {
     @Test
     fun `a request without the microphone is refused although the microphone is allowed`() {
         // Act
-        val answer = answerDeviceRequest(wantsMicrophone = false, microphoneAllowed = true)
+        val answer = answerDeviceRequest(wantsMicrophone = false, appHoldsMicrophonePermission = true)
 
         // Assert
         assertEquals(DeviceAnswer.DENY, answer)
@@ -38,7 +38,7 @@ class PermissionBridgeTest {
     @Test
     fun `a request without the microphone is refused without asking the learner`() {
         // Act
-        val answer = answerDeviceRequest(wantsMicrophone = false, microphoneAllowed = false)
+        val answer = answerDeviceRequest(wantsMicrophone = false, appHoldsMicrophonePermission = false)
 
         // Assert
         assertEquals(DeviceAnswer.DENY, answer)
@@ -47,7 +47,7 @@ class PermissionBridgeTest {
     @Test
     fun `the microphone is passed on when the learner allows it in Android's dialog`() {
         // Act
-        val answer = answerAfterLearner(learnerAllowed = true)
+        val answer = answerAfterDialog(learnerAllowedInDialog = true)
 
         // Assert
         assertEquals(DeviceAnswer.GRANT_MICROPHONE, answer)
@@ -56,7 +56,7 @@ class PermissionBridgeTest {
     @Test
     fun `the website is refused when the learner refuses the microphone`() {
         // Act
-        val answer = answerAfterLearner(learnerAllowed = false)
+        val answer = answerAfterDialog(learnerAllowedInDialog = false)
 
         // Assert
         assertEquals(DeviceAnswer.DENY, answer)
