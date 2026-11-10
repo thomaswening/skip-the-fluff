@@ -292,6 +292,15 @@ The globs are the same as in `docs-check.yml`. `--source` and `--tests` name the
 
 `tools/ask_microphone.mjs` asks for the microphone from inside the app's [WebView](glossary.md#webview), exactly as a speaking [exercise](glossary.md#exercise) does, and prints the answer [the website](glossary.md#the-website) receives. It checks [REQ-038](requirements.md#req-038) and [REQ-049](requirements.md#req-049) on an Android emulator without finding a speaking exercise first. It is run by hand. No workflow runs it, so it blocks nothing.
 
+**When to run it:** before merging a pull request that changes the wiring between the website and Android's permission. The decisions themselves (grant, ask the learner, refuse, show the bar) are unit tests in `PermissionBridgeTest.kt`, which the [build workflow](#build-workflow) runs on every pull request. What the unit tests cannot reach is whether the WebView asks, Android's dialog appears and its answer reaches the page. The check is due when a pull request changes one of these:
+
+- the permission code in `MainActivity.kt`: `DeviceRequestClient`, `microphoneDialog`, `answerWebsite` or the bar;
+- `RECORD_AUDIO` or `MODIFY_AUDIO_SETTINGS` in `AndroidManifest.xml`;
+- the WebView's settings in `createWebView`;
+- `compileSdk` or `targetSdk` in `app/build.gradle.kts`, because a new Android version may change how permissions are asked.
+
+Other pull requests, such as a [fix](glossary.md#fix), navigation or documents, do not need it.
+
 The script talks to the WebView through its DevTools socket, the same connection Chrome's `chrome://inspect` uses (comparable to attaching Visual Studio's debugger to a running process). A debug build allows the connection. A release does not. `adb forward` makes the socket reachable on the computer's port 9222. The script sends one `Runtime.evaluate` with `awaitPromise`, which runs `navigator.mediaDevices.getUserMedia({ audio: true })` in the page and waits for its answer.
 
 ```mermaid
