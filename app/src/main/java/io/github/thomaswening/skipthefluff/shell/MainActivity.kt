@@ -1,12 +1,16 @@
 package io.github.thomaswening.skipthefluff.shell
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.PermissionRequest
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -15,6 +19,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -27,6 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import io.github.thomaswening.skipthefluff.R
 import io.github.thomaswening.skipthefluff.navigation.opensInDefaultBrowser
+import io.github.thomaswening.skipthefluff.permissions.DeviceAnswer
+import io.github.thomaswening.skipthefluff.permissions.answerAfterDialog
+import io.github.thomaswening.skipthefluff.permissions.answerDeviceRequest
 
 /** The page the app opens: the website's start page, which shows the learning path once signed in. */
 private const val START_URL = "https://www.duolingo.com/"
@@ -45,6 +53,17 @@ class MainActivity : ComponentActivity() {
     // Enabled while the back gesture goes back in the website; disabled, Android closes the app.
     private val backInWebsite = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() = webView.goBack()
+    }
+
+    // The website's microphone request while Android's dialog asks the learner; null otherwise.
+    private var requestWaitingForLearner: PermissionRequest? = null
+
+    // Shows Android's permission dialog and calls back with the learner's answer. Registered when the
+    // window is created, as Android requires, so the answer arrives even if the window was paused meanwhile.
+    private val microphoneDialog = registerForActivityResult(ActivityResultContracts.RequestPermission()) { allowed ->
+        val request = requestWaitingForLearner ?: return@registerForActivityResult
+        requestWaitingForLearner = null
+        answerWebsite(request, answerAfterDialog(learnerAllowedInDialog = allowed))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,12 +109,16 @@ class MainActivity : ComponentActivity() {
         // The website is a JavaScript app that keeps its state in the page's storage.
         view.settings.javaScriptEnabled = true
         view.settings.domStorageEnabled = true
+        // [REQ-038](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-038): a
+        // listening exercise plays its audio by itself, as in Chrome, instead of waiting for a tap.
+        view.settings.mediaPlaybackRequiresUserGesture = false
         // [REQ-016](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-016):
         // the sign-in cookie keeps the learner signed in across restarts.
         CookieManager.getInstance().setAcceptCookie(true)
         // The renderer process stays as important as the app when the app is not visible ([ADR-0003](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/adr/0003-lesson-survives-switch.md), point 2).
         view.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
         view.webViewClient = WebsiteClient()
+        view.webChromeClient = DeviceRequestClient()
         return view
     }
 
@@ -117,6 +140,44 @@ class MainActivity : ComponentActivity() {
             openInDefaultBrowser(request.url)
             return true
         }
+    }
+
+    /**
+     * Passes the website's requests for a device, such as the microphone in a speaking exercise, to
+     * the permission bridge ([REQ-038](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-038)).
+     * Without this client the WebView refuses every such request.
+     */
+    private inner class DeviceRequestClient : WebChromeClient() {
+        override fun onPermissionRequest(request: PermissionRequest) {
+            val wantsMicrophone = PermissionRequest.RESOURCE_AUDIO_CAPTURE in request.resources
+            val appHoldsMicrophonePermission = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+            answerWebsite(request, answerDeviceRequest(wantsMicrophone, appHoldsMicrophonePermission))
+        }
+
+        // The website withdrew its request, e.g. because the learner left the exercise while the dialog
+        // was open. The learner's later answer then has no request to go to.
+        override fun onPermissionRequestCanceled(request: PermissionRequest) {
+            if (request == requestWaitingForLearner) requestWaitingForLearner = null
+        }
+    }
+
+    private fun answerWebsite(request: PermissionRequest, answer: DeviceAnswer) {
+        when (answer) {
+            DeviceAnswer.GRANT_MICROPHONE -> request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+            DeviceAnswer.DENY -> request.deny()
+            DeviceAnswer.ASK_LEARNER -> askLearner(request)
+        }
+    }
+
+    private fun askLearner(request: PermissionRequest) {
+        // Android shows one dialog at a time. A second request while it is open is refused, so that it
+        // does not wait forever; the website asks again in its next speaking exercise.
+        if (requestWaitingForLearner != null) {
+            request.deny()
+            return
+        }
+        requestWaitingForLearner = request
+        microphoneDialog.launch(Manifest.permission.RECORD_AUDIO)
     }
 
     private fun openInDefaultBrowser(url: Uri) {
