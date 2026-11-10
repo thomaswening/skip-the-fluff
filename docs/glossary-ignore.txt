@@ -4,7 +4,7 @@
 # paragraph or list item instead.
 CPU  # general computing vocabulary
 GNU  # part of the licence's name
-ADB  # Android Debug Bridge, named only to say it is not needed
+ADB  # Android Debug Bridge, the Android SDK's command-line tool for a device or emulator
 API  # general computing vocabulary
 README  # general computing vocabulary
 UTC  # general vocabulary
