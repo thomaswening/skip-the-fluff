@@ -7,10 +7,12 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.provider.Settings
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.PermissionRequest
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -36,6 +38,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,15 +46,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
 import io.github.thomaswening.skipthefluff.R
+import io.github.thomaswening.skipthefluff.navigation.START_URL
 import io.github.thomaswening.skipthefluff.navigation.opensInDefaultBrowser
 import io.github.thomaswening.skipthefluff.permissions.DeviceAnswer
 import io.github.thomaswening.skipthefluff.permissions.answerAfterDialog
 import io.github.thomaswening.skipthefluff.permissions.answerDeviceRequest
 import io.github.thomaswening.skipthefluff.permissions.tellsWhereToSwitchMicrophoneOn
-
-/** The page the app opens: the website's start page, which shows the learning path once signed in. */
-private const val START_URL = "https://www.duolingo.com/"
 
 /**
  * The app's one window. It shows the website full screen in one WebView that lives as long as the
@@ -59,14 +61,32 @@ private const val START_URL = "https://www.duolingo.com/"
  * The manifest declares every configuration change, so Android never rebuilds this window and the
  * WebView, with the lesson in it, survives a rotation or a dark-mode switch
  * ([ADR-0003](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/adr/0003-lesson-survives-switch.md), point 1).
+ * If Android ends the WebView's renderer process anyway, the window replaces the WebView (point 4).
  */
 class MainActivity : ComponentActivity() {
 
-    private lateinit var webView: WebView
+    // The WebView that shows the website, or null between the loss of its renderer process and the
+    // recovery. Compose state, so the screen swaps in the new WebView when it changes.
+    private var webView by mutableStateOf<WebView?>(null)
+
+    // The last page of the website the WebView showed, kept outside it so that it survives the WebView's loss.
+    private var lastWebsiteAddress: String? = null
+
+    // When the current WebView started loading its page, in milliseconds of SystemClock.elapsedRealtime,
+    // a clock that keeps counting while the phone sleeps.
+    private var pageStartedAtMillis = 0L
+
+    // The renderer losses in a row so far (see lossesInARow), 0 after a recovery has given up.
+    private var rendererLossesInARow = 0
+
+    // What to do about a lost renderer process once the window is visible again; null when nothing was lost.
+    private var pendingRecovery: RendererRecovery? = null
 
     // Enabled while the back gesture goes back in the website; disabled, Android closes the app.
     private val backInWebsite = object : OnBackPressedCallback(false) {
-        override fun handleOnBackPressed() = webView.goBack()
+        override fun handleOnBackPressed() {
+            webView?.goBack()
+        }
     }
 
     // The website's microphone request while Android's dialog asks the learner; null otherwise.
@@ -99,10 +119,26 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // The website is drawn behind the system bars, and the padding in WebsiteScreen leaves room for them.
         enableEdgeToEdge()
-        webView = createWebView()
         onBackPressedDispatcher.addCallback(this, backInWebsite)
-        webView.loadUrl(START_URL)
+        showWebsite(savedInstanceState)
         setContent { WebsiteScreen(webView, showsMicrophoneHint, ::onMicrophoneHintClosed) }
+    }
+
+    // On a restart after Android ended the whole app in the background, the WebView's page history comes
+    // back from the saved state. The page is loaded anew, so the lesson is lost
+    // ([ADR-0003](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/adr/0003-lesson-survives-switch.md), point 4).
+    private fun showWebsite(savedInstanceState: Bundle?) {
+        val view = createWebView()
+        webView = view
+        pageStartedAtMillis = SystemClock.elapsedRealtime()
+        val restoredHistory = savedInstanceState?.let(view::restoreState)
+        if (restoredHistory == null) view.loadUrl(START_URL)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Without a WebView, after a lost renderer process, the restarted app opens the start page.
+        webView?.saveState(outState)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -115,18 +151,53 @@ class MainActivity : ComponentActivity() {
         super.onPause()
         // Stops media and animations. The page's JavaScript, and with it the lesson, keeps running
         // ([ADR-0003](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/adr/0003-lesson-survives-switch.md), point 3). The cookies are written to disk now, in case Android ends the app.
-        webView.onPause()
+        webView?.onPause()
         CookieManager.getInstance().flush()
     }
 
     override fun onResume() {
         super.onResume()
-        webView.onResume()
+        webView?.onResume()
+        pendingRecovery?.let(::recover)
     }
 
     override fun onDestroy() {
-        webView.destroy()
+        webView?.destroy()
         super.onDestroy()
+    }
+
+    // Called by WebsiteClient when Android has ended the renderer process. The dead WebView can show
+    // nothing more and must leave the screen and be destroyed. The new one is built only while the window
+    // is visible: in the background, Android is freeing memory, and a new page would be ended again.
+    private fun onRendererLost(deadView: WebView) {
+        (deadView.parent as? ViewGroup)?.removeView(deadView)
+        deadView.destroy()
+        webView = null
+        backInWebsite.isEnabled = false
+        rendererLossesInARow = lossesInARow(rendererLossesInARow, SystemClock.elapsedRealtime() - pageStartedAtMillis)
+        val recovery = recoveryAfterLoss(rendererLossesInARow, lastWebsiteAddress)
+        pendingRecovery = recovery
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) recover(recovery)
+    }
+
+    // Carries out the recovery that recoveryAfterLoss chose
+    // ([ADR-0003](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/adr/0003-lesson-survives-switch.md), point 4).
+    private fun recover(recovery: RendererRecovery) {
+        when (recovery) {
+            is RendererRecovery.Reload -> {
+                pendingRecovery = null
+                val view = createWebView()
+                webView = view
+                pageStartedAtMillis = SystemClock.elapsedRealtime()
+                view.loadUrl(recovery.address)
+            }
+            RendererRecovery.GiveUp -> {
+                // The next return to the app tries again from the start page, with a new count.
+                pendingRecovery = RendererRecovery.Reload(START_URL)
+                rendererLossesInARow = 0
+                Toast.makeText(this, R.string.website_not_loaded, Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun createWebView(): WebView {
@@ -153,11 +224,13 @@ class MainActivity : ComponentActivity() {
 
     /**
      * Keeps the WebView on the website and updates where the back gesture leads each time the website's
-     * history changes.
+     * history changes. Replaces the WebView when its renderer process is gone.
      */
     private inner class WebsiteClient : WebViewClient() {
         override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
-            val path = url?.let { Uri.parse(it).path }
+            val uri = url?.let(Uri::parse)
+            if (uri != null && isWebsiteAddress(uri.scheme, uri.host)) lastWebsiteAddress = url
+            val path = uri?.path
             backInWebsite.isEnabled = goesBackInWebsite(path, view.canGoBack())
         }
 
@@ -167,6 +240,13 @@ class MainActivity : ComponentActivity() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             if (!opensInDefaultBrowser(request.url.host, request.isForMainFrame)) return false
             openInDefaultBrowser(request.url)
+            return true
+        }
+
+        // Android ended the renderer process, to free memory or because it crashed. Returning true tells
+        // the WebView that the app handles it. Returning false would end the whole app.
+        override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+            onRendererLost(view)
             return true
         }
     }
@@ -235,13 +315,14 @@ class MainActivity : ComponentActivity() {
 /**
  * The WebView fills the window inside the system bars and the keyboard, in the system's colours.
  *
+ * @param webView the WebView to show, or null while none is there after a lost renderer process.
  * @param showsMicrophoneHint whether to show the bar that says where to switch the microphone on
  *   ([REQ-049](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-049)).
  * @param onMicrophoneHintClosed called once the bar is gone, with whether the learner tapped its button.
  */
 @Composable
 private fun WebsiteScreen(
-    webView: WebView,
+    webView: WebView?,
     showsMicrophoneHint: Boolean,
     onMicrophoneHintClosed: (learnerChoseSettings: Boolean) -> Unit,
 ) {
@@ -250,7 +331,9 @@ private fun WebsiteScreen(
         // The surface colours the strips behind the status and navigation bars.
         Surface(modifier = Modifier.fillMaxSize()) {
             Box(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-                AndroidView(factory = { webView }, modifier = Modifier.fillMaxSize())
+                // key: a new WebView after a lost renderer process gets a new AndroidView, which shows
+                // it. Without a WebView, the window stays empty in the system's colours.
+                if (webView != null) key(webView) { AndroidView(factory = { webView }, modifier = Modifier.fillMaxSize()) }
                 MicrophoneHint(showsMicrophoneHint, onMicrophoneHintClosed, Modifier.align(Alignment.BottomCenter))
             }
         }
