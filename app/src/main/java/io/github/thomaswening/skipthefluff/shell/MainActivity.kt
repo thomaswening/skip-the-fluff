@@ -1,12 +1,16 @@
 package io.github.thomaswening.skipthefluff.shell
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -21,6 +25,8 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
+import io.github.thomaswening.skipthefluff.R
+import io.github.thomaswening.skipthefluff.navigation.opensInDefaultBrowser
 
 /** The page the app opens: the website's start page, which shows the learning path once signed in. */
 private const val START_URL = "https://www.duolingo.com/"
@@ -89,15 +95,37 @@ class MainActivity : ComponentActivity() {
         CookieManager.getInstance().setAcceptCookie(true)
         // The renderer process stays as important as the app when the app is not visible ([ADR-0003](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/adr/0003-lesson-survives-switch.md), point 2).
         view.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
-        view.webViewClient = HistoryWatchingClient()
+        view.webViewClient = WebsiteClient()
         return view
     }
 
-    /** Updates where the back gesture leads each time the website's history changes. */
-    private inner class HistoryWatchingClient : WebViewClient() {
+    /**
+     * Keeps the WebView on the website and updates where the back gesture leads each time the website's
+     * history changes.
+     */
+    private inner class WebsiteClient : WebViewClient() {
         override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
             val path = url?.let { Uri.parse(it).path }
             backInWebsite.isEnabled = goesBackInWebsite(path, view.canGoBack())
+        }
+
+        // Called for each navigation the page starts, including window.open, which the website's
+        // sign-in buttons use and which the WebView turns into a navigation of its one window.
+        // Returning true cancels it. Images, scripts and other resources never pass through here.
+        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+            if (!opensInDefaultBrowser(request.url.host, request.isForMainFrame)) return false
+            openInDefaultBrowser(request.url)
+            return true
+        }
+    }
+
+    private fun openInDefaultBrowser(url: Uri) {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, url))
+        } catch (noBrowser: ActivityNotFoundException) {
+            // No app on the phone opens web pages. The learner stays on the current page and is told
+            // why nothing opened and what to do.
+            Toast.makeText(this, R.string.no_browser, Toast.LENGTH_LONG).show()
         }
     }
 }
