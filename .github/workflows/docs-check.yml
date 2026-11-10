@@ -30,7 +30,7 @@ jobs:
         # Keep them in step with docs/development.md#docs-check.
         run: >-
           python tools/check_docs.py . --base "origin/${{ github.base_ref }}"
-          --source "*.kts" "app/*.kts" "gradle/*.toml" "app/src/main/**/*.kt" "app/src/main/**/*.xml" "engine/*.js"
+          --source "*.kts" "app/*.kts" "gradle/*.toml" "app/src/main/**/*.kt" "app/src/main/**/*.xml" "engine/*.js" "tools/*.mjs"
           --tests "app/src/test/**/*.kt"
           --markdown "fixes/*.md"
           --repo-url "https://github.com/${{ github.repository }}"

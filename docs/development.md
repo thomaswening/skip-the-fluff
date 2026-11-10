@@ -150,7 +150,7 @@ The [version code](glossary.md#version-code) is computed from it in the same fil
 
 ## Tools and checks
 
-Five GitHub workflows check pull requests and `main`. Each workflow file's header links its section here.
+Five GitHub workflows check pull requests and `main`. Each workflow file's header links its section here. One script, the [microphone check](#microphone-check), is run by hand on an emulator.
 
 ```mermaid
 flowchart LR
@@ -283,7 +283,74 @@ A glossary word used in its everyday sense is exempted where it occurs: `<!-- gl
 **Running it locally** needs Python 3. Node's `npx` is needed for the Mermaid check. Without it, the check is skipped locally with a note.
 
 ```bash
-python tools/check_docs.py . --base origin/main --source "*.kts" "app/*.kts" "gradle/*.toml" "app/src/main/**/*.kt" "app/src/main/**/*.xml" "engine/*.js" --tests "app/src/test/**/*.kt" --markdown "fixes/*.md" --repo-url https://github.com/thomaswening/skip-the-fluff
+python tools/check_docs.py . --base origin/main --source "*.kts" "app/*.kts" "gradle/*.toml" "app/src/main/**/*.kt" "app/src/main/**/*.xml" "engine/*.js" "tools/*.mjs" --tests "app/src/test/**/*.kt" --markdown "fixes/*.md" --repo-url https://github.com/thomaswening/skip-the-fluff
 ```
 
 The globs are the same as in `docs-check.yml`. `--source` and `--tests` name the code whose links into `docs/` and whose requirement and ADR IDs are checked. A test that names a requirement ID that does not exist fails the check, e.g. `names REQ-099, which is not defined`. An ID in a code comment without a link to its definition is a warning.
+
+### Microphone check
+
+`tools/ask_microphone.mjs` asks for the microphone from inside the app's [WebView](glossary.md#webview), exactly as a speaking [exercise](glossary.md#exercise) does, and prints the answer [the website](glossary.md#the-website) receives. It checks [REQ-038](requirements.md#req-038) and [REQ-049](requirements.md#req-049) on an Android emulator without finding a speaking exercise first. It is run by hand. No workflow runs it, so it blocks nothing.
+
+The script talks to the WebView through its DevTools socket, the same connection Chrome's `chrome://inspect` uses (comparable to attaching Visual Studio's debugger to a running process). A debug build allows the connection. A release does not. `adb forward` makes the socket reachable on the computer's port 9222. The script sends one `Runtime.evaluate` with `awaitPromise`, which runs `navigator.mediaDevices.getUserMedia({ audio: true })` in the page and waits for its answer.
+
+```mermaid
+flowchart LR
+  script["ask_microphone.mjs"] -->|"127.0.0.1:9222"| forward["adb forward"]
+  forward --> socket["WebView DevTools socket<br/>webview_devtools_remote_&lt;pid&gt;"]
+  socket --> page["page: getUserMedia"]
+  page --> bridge["permission bridge"]
+  bridge --> dialog["Android's dialog<br/>(or none after two refusals)"]
+  dialog -->|"answer"| page
+  page -->|"granted or NotAllowedError"| script
+```
+
+**Rule: the website receives the learner's answer. After two refusals the bar of [REQ-049](requirements.md#req-049) appears.** The script prints `granted` and exits with 0, or prints the error's name and exits with 1. It exits with 2 when it cannot ask at all: nothing listens on the port, the WebView shows no page, or no answer came within 120 seconds.
+
+| Permission before the run | What you do | Prints | On screen |
+|---|---|---|---|
+| reset (see below) | tap "While using the app" | `granted` | Android's dialog, then nothing |
+| reset | tap "Don’t allow" | `NotAllowedError` | Android's dialog, then nothing |
+| refused once | tap "Don’t allow" | `NotAllowedError` | Android's dialog, then the bar of [REQ-049](requirements.md#req-049) |
+| refused twice | nothing | `NotAllowedError` | no dialog; the bar, unless it was shown since the app started |
+| allowed | nothing | `granted` | nothing |
+
+After the second refusal Android will not show its dialog again, so the bar appears at once. From then on Android refuses by itself.
+
+**Running it** needs the debug build installed on a running emulator, `adb` from the Android SDK's `platform-tools`, and Node 22. In Git Bash:
+
+```bash
+export MSYS_NO_PATHCONV=1
+PKG=io.github.thomaswening.skipthefluff.debug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb shell am start -n $PKG/io.github.thomaswening.skipthefluff.shell.MainActivity
+adb forward tcp:9222 localabstract:webview_devtools_remote_$(adb shell pidof $PKG | tr -d '\r')
+node tools/ask_microphone.mjs
+```
+
+`export MSYS_NO_PATHCONV=1` comes first. Without it, Git Bash rewrites every argument that starts with `/` into a Windows path before `adb` sees it, so `/sdcard/window.xml` arrives on the emulator as `C:/Program Files/Git/sdcard/window.xml`. PowerShell does not rewrite paths. The socket's name ends in the app's process ID, so the `adb forward` line is repeated after every start of the app. `tr -d '\r'` removes the line ending that `adb shell` adds on Windows.
+
+**Resetting the permission** to "never asked" before a run, so that Android shows its dialog again and forgets earlier refusals:
+
+```bash
+adb shell pm revoke $PKG android.permission.RECORD_AUDIO
+adb shell pm clear-permission-flags $PKG android.permission.RECORD_AUDIO user-set user-fixed
+adb shell am force-stop $PKG
+```
+
+`revoke` takes the permission away. `clear-permission-flags` forgets the refusals: `user-set` marks one refusal, `user-fixed` two. Revoking a permission ends the app, so it is started and forwarded again afterwards.
+
+**Tapping "Don’t allow" from the command line**, while the script waits for an answer in another shell: dump the screen's views, find the button's bounds and tap their middle. The button's text has a typographic apostrophe, `’`, not `'`.
+
+```bash
+adb shell uiautomator dump /sdcard/window.xml
+adb shell cat /sdcard/window.xml | grep -o 'text="Don’t allow"[^>]*bounds="[^"]*"'
+```
+
+The output ends in e.g. `bounds="[133,1412][947,1559]"`, the button's left, top, right and bottom edges. Tap the middle:
+
+```bash
+adb shell input tap 540 1485
+```
+
+**When it fails:** `cannot run: nothing answers on http://127.0.0.1:9222/json/list` means the app is not running or the forward points at an old process ID. Start the app and repeat the `adb forward` line. `no answer within 120 s` means Android's dialog stayed open. A `NotAllowedError` where `granted` was expected means the permission was not reset or not allowed: run the reset above.
