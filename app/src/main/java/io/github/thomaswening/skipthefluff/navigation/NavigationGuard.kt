@@ -3,6 +3,9 @@ package io.github.thomaswening.skipthefluff.navigation
 /** The website's own domain. Its subdomains, such as www and support, belong to the website too. */
 private const val WEBSITE_DOMAIN = "duolingo.com"
 
+/** The only scheme of the website's pages. The website is served over HTTPS only. */
+private const val WEBSITE_SCHEME = "https"
+
 /** The page the app opens: the website's start page, which shows the learning path once signed in. */
 internal const val START_URL = "https://www.duolingo.com/"
 
@@ -31,3 +34,16 @@ internal fun belongsToWebsite(host: String): Boolean {
     val lowercaseHost = host.lowercase()
     return lowercaseHost == WEBSITE_DOMAIN || lowercaseHost.endsWith(".$WEBSITE_DOMAIN")
 }
+
+/**
+ * Whether an address is a page of the website that the app may load again, after a lost renderer
+ * process ([ADR-0003](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/adr/0003-lesson-survives-switch.md),
+ * point 4) or from the no-connection screen
+ * ([REQ-044](https://github.com/thomaswening/skip-the-fluff/blob/main/docs/requirements.md#req-044)).
+ * An address without a host, such as about:blank, on another host or without HTTPS is not.
+ *
+ * @param scheme the address's scheme, such as `https`, or null if it has none.
+ * @param host the address's host, such as `www.duolingo.com`, or null if it has none.
+ */
+internal fun isWebsiteAddress(scheme: String?, host: String?): Boolean =
+    scheme.equals(WEBSITE_SCHEME, ignoreCase = true) && host != null && belongsToWebsite(host)

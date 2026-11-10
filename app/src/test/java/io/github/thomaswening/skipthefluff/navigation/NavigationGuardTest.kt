@@ -119,4 +119,40 @@ class NavigationGuardTest {
         // Assert
         assertFalse(opensInBrowser)
     }
+
+    @Test
+    fun `a page of the website over HTTPS is a website address`() {
+        // Act
+        val isWebsite = isWebsiteAddress(scheme = "https", host = "www.duolingo.com")
+
+        // Assert
+        assertTrue(isWebsite)
+    }
+
+    @Test
+    fun `an address without a host is not a website address`() {
+        // Act (about:blank has the scheme "about" and no host)
+        val isWebsite = isWebsiteAddress(scheme = "about", host = null)
+
+        // Assert
+        assertFalse(isWebsite)
+    }
+
+    @Test
+    fun `an address on another host is not a website address`() {
+        // Act
+        val isWebsite = isWebsiteAddress(scheme = "https", host = "en.wikipedia.org")
+
+        // Assert
+        assertFalse(isWebsite)
+    }
+
+    @Test
+    fun `a page of the website without HTTPS is not a website address`() {
+        // Act
+        val isWebsite = isWebsiteAddress(scheme = "http", host = "www.duolingo.com")
+
+        // Assert
+        assertFalse(isWebsite)
+    }
 }
