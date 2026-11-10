@@ -4,4 +4,8 @@
     <!-- Shown when a page outside Duolingo should open in the browser, but the phone has none (REQ-015).
          Android cuts a toast off after two lines, so this must stay short. -->
     <string name="no_browser">No browser can open this page. Install one, or switch one on, and try again.</string>
+    <!-- Shown once per start of the app when Android will not ask for the microphone again (REQ-049).
+         The button opens the app's page in Android's settings, where Permissions leads to the microphone. -->
+    <string name="microphone_off">The microphone is off for Skip the Fluff. To speak in exercises, switch it on under Permissions.</string>
+    <string name="microphone_off_settings">Settings</string>
 </resources>
