@@ -18,6 +18,7 @@ Design. No code and no release yet. The project is described in:
 - [Architecture](docs/architecture.md): how the app is built, its parts and its risks
 - [Roadmap](docs/roadmap.md): the phases in which the app is built, and which decisions each needs
 - [Decisions](docs/adr/README.md): the [architecture decision records](docs/glossary.md#adr), one decision each
+- [Manual verification](docs/manual-verification.md): the checks done by hand on the phone, with their results
 - [Glossary](docs/glossary.md): the terms the documents use
 - [Development](docs/development.md): branches, commits, releases and the checks every pull request runs
 
