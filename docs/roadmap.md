@@ -44,12 +44,12 @@ The app shows [the website](glossary.md#the-website) full screen in Android's [W
 
 ### Phase 2: Fix engine and first fix
 
-The ADR on testing decides how the engine, the [exercise guard](glossary.md#exercise-guard) and each fix are tested without copying Duolingo's pages into the repository. Then the engine is built as [ADR-0002](adr/0002-fix-engine.md) describes, with the check of fix files at build time, the message bridge and the feature check of [REQ-048](requirements.md#req-048). The first fix is the "use the app" prompt of [REQ-005](requirements.md#req-005), because it appears after every session and is easy to observe. With it, the reference device confirms what [ADR-0002](adr/0002-fix-engine.md) left to the first fix: that `data-test` attributes identify exercises, that the guard tells visible from hidden exercises, and how the engine tells that a lesson started and ended. The lesson state then hides the system bars during lessons and makes the back gesture ask before ending a lesson.
+[ADR-0007](adr/0007-testing-fixes.md) decided how the engine, the [exercise guard](glossary.md#exercise-guard) and each fix are tested without copying Duolingo's pages into the repository. Then the engine is built as [ADR-0002](adr/0002-fix-engine.md) describes, with the check of fix files at build time, the message bridge and the feature check of [REQ-048](requirements.md#req-048). The first fix is the "use the app" prompt of [REQ-005](requirements.md#req-005), because it appears after every session and is easy to observe. With it, the reference device confirms what [ADR-0002](adr/0002-fix-engine.md) left to the first fix: that `data-test` attributes identify exercises, that the guard tells visible from hidden exercises, and how the engine tells that a lesson started and ended. The lesson state then hides the system bars during lessons and makes the back gesture ask before ending a lesson.
 
 This is the riskiest phase. IF the guard cannot identify exercises with confidence, THEN no fix may act ([REQ-012](requirements.md#req-012)), and the project needs a new ADR before going further.
 
 - Requirements: [REQ-005](requirements.md#req-005), [REQ-012](requirements.md#req-012), [REQ-013](requirements.md#req-013) (during lessons), [REQ-023](requirements.md#req-023), [REQ-024](requirements.md#req-024), [REQ-025](requirements.md#req-025), [REQ-034](requirements.md#req-034), [REQ-037](requirements.md#req-037) (during lessons), [REQ-048](requirements.md#req-048)
-- Resolves: the testing ADR (to be written); the follow-ups of [ADR-0002](adr/0002-fix-engine.md)
+- Resolves: the testing ADR ([ADR-0007](adr/0007-testing-fixes.md)); the follow-ups of [ADR-0002](adr/0002-fix-engine.md)
 - Needs: nothing beyond phase 1
 
 ### Phase 3: The remaining fixes
@@ -118,7 +118,7 @@ Each of these is a COULD and starts with its open decision. The phases are numbe
 |---|---|
 | The app's structure and build ([ADR-0006](adr/0006-structure-and-build.md), decided 9 November 2026) | Phase 0 |
 | [OPEN-H](requirements.md#open-h) (resolved 9 November 2026: landscape works) | Phase 1 (orientation) |
-| Testing fixes and the engine (ADR to be written) | Phase 2 |
+| Testing fixes and the engine ([ADR-0007](adr/0007-testing-fixes.md), proposed 11 November 2026) | Phase 2 |
 | [OPEN-A](requirements.md#open-a) | Phase 3, each new fix; collected continuously |
 | [OPEN-J](requirements.md#open-j) | Phase 4 (the report) |
 | The release workflow (ADR to be written) | Phase 5 |

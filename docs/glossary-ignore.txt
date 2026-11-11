@@ -28,3 +28,5 @@ HTTP  # general web vocabulary
 XML  # general computing vocabulary
 XAML  # .NET markup language, named only for comparison
 JVM  # Java virtual machine, spelt out where it is first used (development.md)
+HTML  # general web vocabulary
+DOM  # general web vocabulary, the browser's tree of a page's elements
