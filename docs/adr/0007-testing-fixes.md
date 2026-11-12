@@ -1,6 +1,6 @@
 # ADR-0007: The engine and every fix are tested in headless Chromium on hand-written pages, never on copies of Duolingo's
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-11-11
 - **Decided by:** Thomas, 11 November 2026, in conversation, on Claude's brief
 
