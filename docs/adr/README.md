@@ -16,3 +16,4 @@ New records copy [template.md](template.md).
 | [ADR-0004](0004-minimum-android-10.md) | The minimum is Android 10 and follows Chrome's support | Accepted |
 | [ADR-0005](0005-signing-key.md) | GitHub Actions signs releases with a key held in a protected environment and backed up twice off GitHub | Accepted |
 | [ADR-0006](0006-structure-and-build.md) | The app is one [Kotlin](../glossary.md#kotlin) module built with [Gradle](../glossary.md#gradle), with a JavaScript [fix engine](../glossary.md#fix-engine) type-checked in CI | Accepted |
+| [ADR-0007](0007-testing-fixes.md) | The engine and every [fix](../glossary.md#fix) are tested in headless Chromium on hand-written [test pages](../glossary.md#test-page), never on copies of Duolingo's | Proposed |

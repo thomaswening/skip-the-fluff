@@ -209,7 +209,7 @@ The lesson lives only in the page's JavaScript memory. The app keeps it by never
 - **Network:** the WebView loads the website and makes its Safe Browsing lookups. The update checker is the app's only network code. A page that cannot be loaded shows the app's own screen, with no automatic retry, not even when the network returns ([REQ-044](requirements.md#req-044)). The website is a [single-page app](glossary.md#single-page-app), so a connection lost while it is shown reaches the website, which handles it itself.
 - **Versions in reports:** each report states the app version, the Android version and the WebView version, so a failure can be tied to the WebView update that caused it ([REQ-033](requirements.md#req-033)).
 - **Language:** the interface and all documents are in English ([REQ-029](requirements.md#req-029)).
-- **Testing:** **Open**, for the ADR on testing fixes and the engine without copying Duolingo's pages ([ADR-0002](adr/0002-fix-engine.md), Consequences). Whatever it decides, every test carries the ID of the requirement it checks, and `tools/check_docs.py` checks the IDs ([development.md](development.md#docs-check)). Requirements accepted on the reference device, such as [REQ-009](requirements.md#req-009) and [REQ-014](requirements.md#req-014), are checked by hand and listed in the [manual-verification record](manual-verification.md).
+- **Testing:** **Planned** ([ADR-0007](adr/0007-testing-fixes.md)). The engine, the [exercise guard](glossary.md#exercise-guard) and every fix are tested with Playwright in headless Chromium, on [test pages](glossary.md#test-page) written by hand, in CI on every pull request. Every fix has a test page and four generated cases: it acts, it does nothing over a visible exercise, nothing with any one marker missing, nothing when switched off. The wiring in the real WebView is an [instrumented test](glossary.md#instrumented-test) on the emulator, run by hand when the wiring changes. No page of Duolingo's enters the repository. Every test carries the ID of the requirement it checks, and `tools/check_docs.py` checks the IDs ([development.md](development.md#docs-check)). Requirements accepted on the reference device, such as [REQ-009](requirements.md#req-009) and [REQ-014](requirements.md#req-014), are checked by hand and listed in the [manual-verification record](manual-verification.md).
 
 ## 8. Decisions
 
@@ -221,12 +221,12 @@ The lesson lives only in the page's JavaScript memory. The app keeps it by never
 | [0004](adr/0004-minimum-android-10.md) | The minimum is Android 10 and follows Chrome's support | [OPEN-D](requirements.md#open-d) | Accepted |
 | [0005](adr/0005-signing-key.md) | GitHub Actions signs releases with a key held in a protected environment and backed up twice off GitHub | | Accepted |
 | [0006](adr/0006-structure-and-build.md) | The app is one Kotlin module built with Gradle, with a JavaScript fix engine type-checked in CI | | Accepted |
+| [0007](adr/0007-testing-fixes.md) | The engine and every fix are tested in headless Chromium on hand-written pages, never on copies of Duolingo's | | Proposed |
 
 Still to be written, each briefed in conversation first:
 
 | Decision | What it settles | Needed by |
 |---|---|---|
-| Testing fixes and the engine | how the engine, the guard and each fix are tested without Duolingo's pages in the repository | the first fix |
 | The release workflow | the signing job, the minimum-version file attached to each release, the tested WebView version on the release page | the first release |
 
 ## 9. Risks
@@ -234,10 +234,10 @@ Still to be written, each briefed in conversation first:
 | Risk | Mitigation |
 |---|---|
 | Duolingo changes the website and fixes stop matching | A fix that stops matching does nothing ([REQ-025](requirements.md#req-025)). Fix status and reports point to the broken fix ([REQ-033](requirements.md#req-033), [REQ-042](requirements.md#req-042)). Repairing it means editing one data file. The update check brings the repair to learners ([REQ-040](requirements.md#req-040)). |
-| The exercise guard misses an exercise, and a fix acts on it | Hiding comes before pressing ([REQ-012](requirements.md#req-012)). Press fixes are reviewed one by one. The guard's markers are data, repaired like a fix. Tests concentrate on the guard and the two actions ([ADR-0002](adr/0002-fix-engine.md)). |
+| The exercise guard misses an exercise, and a fix acts on it | Hiding comes before pressing ([REQ-012](requirements.md#req-012)). Press fixes are reviewed one by one. The guard's markers are data, repaired like a fix. Tests concentrate on the guard and the two actions ([ADR-0002](adr/0002-fix-engine.md)) and run in headless Chromium, where visibility is real, on every pull request ([ADR-0007](adr/0007-testing-fixes.md)). |
 | Duolingo serves a worse page to a WebView, or blocks it | The [user agent](glossary.md#user-agent) is left honest. A new ADR decides the response ([ADR-0001](adr/0001-android-webview.md), point 1). |
 | A WebView update changes behaviour | The feature check at start shows [REQ-048](requirements.md#req-048)'s screen. Reports carry the WebView version. Each release states the version it was tested with ([REQ-047](requirements.md#req-047)). |
 | Lessons are lost on phones with less memory than the reference device | The app recovers without crashing and keeps the sign-in. Reports reveal the problem. A [foreground service](glossary.md#foreground-service) is reconsidered by a new ADR if needed ([ADR-0003](adr/0003-lesson-survives-switch.md)). |
 | The [signing key](glossary.md#signing-key) is lost or stolen | Two backups off GitHub, a published fingerprint and recorded plans for both cases ([ADR-0005](adr/0005-signing-key.md)). |
-| Tests need Duolingo's pages, which may not be copied into a public repository | Left to the testing ADR, written with the first fix. |
+| Tests need Duolingo's pages, which may not be copied into a public repository | Tests run on hand-written test pages that hold only what the markers and the guard read. The reference device checks each fix on the live website ([ADR-0007](adr/0007-testing-fixes.md)). |
 | Duolingo objects to the project | No branding ([REQ-027](requirements.md#req-027)). The app hides rather than acts on the service ([REQ-012](requirements.md#req-012)) and never cheats ([REQ-003](requirements.md#req-003)). |

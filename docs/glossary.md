@@ -73,6 +73,10 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 - Kind of: [non-exercise screen](#non-exercise-screen)
 - Defined in: [REQ-010](requirements.md#req-010)
 
+<a id="instrumented-test"></a>**instrumented test** *(domain)*: an Android test that runs inside the app on a phone or emulator, with the real Android components, instead of in the JVM on the computer. Comparable to a UI test that drives a real WebView2 control rather than a unit test. Example: the test that checks the [fix engine](#fix-engine) runs in a real [WebView](#webview) on the emulator `stf-test` ([ADR-0007](adr/0007-testing-fixes.md)).
+
+- Not to be confused with: a unit test, which runs in the JVM on the computer on every pull request
+
 <a id="jetpack-compose"></a>**Jetpack Compose** *(domain)*: Android's toolkit for drawing an app's screens in Kotlin code. Each screen is a function of the current state and is redrawn by itself when the state, theme or font size changes. Comparable to Blazor components rather than to WPF's XAML. Example: Skip the Fluff's settings screen ([ADR-0006](adr/0006-structure-and-build.md)).
 
 <a id="kotlin"></a>**Kotlin** *(domain)*: Google's first-choice programming language for Android apps, as C# is for .NET. Example: the code of the [spikes](#spike) and of the app ([ADR-0006](adr/0006-structure-and-build.md)).
@@ -109,6 +113,10 @@ Fixed labels after an entry relate it to others: **Kind of** names the broader t
 <a id="spike"></a>**spike** *(engineering)*: a short, throwaway experiment that answers one design question by measurement, recorded in `docs/spikes/`. Example: a test app on the [reference device](#reference-device) checking that sign-in and the microphone work in a [WebView](#webview) ([ADR-0001](adr/0001-android-webview.md)).
 
 <a id="squash-merge"></a>**squash merge** *(engineering)*: merging a pull request as one new commit on `main` that holds all its changes, with the pull request's title as the commit message. The branch's own commits are not kept on `main`. Example: a branch with five commits becomes `docs(requirements): v0.3, second elicitation pass (#3)`.
+
+<a id="test-page"></a>**test page** *(project)*: a small HTML page written by hand that stands for one screen of [the website](#the-website) in the [fix engine](#fix-engine)'s tests. It holds only the elements, attributes and texts the [markers](#marker) and the [exercise guard](#exercise-guard) read, plus decoys, and nothing copied from Duolingo. Example: `engine/test/pages/req-005-app-prompt.html`, the "use the app" prompt as observed in DevTools on the [reference device](#reference-device) ([ADR-0007](adr/0007-testing-fixes.md)).
+
+- Defined in: [ADR-0007](adr/0007-testing-fixes.md)
 
 <a id="the-website"></a>**the website** *(project)*: Duolingo's web application at duolingo.com and its subdomains, as served to a mobile browser. Skip the Fluff displays it; it does not own, copy or modify it. Example: the lesson page that Skip the Fluff shows full screen.
 
