@@ -118,7 +118,7 @@ Each of these is a COULD and starts with its open decision. The phases are numbe
 |---|---|
 | The app's structure and build ([ADR-0006](adr/0006-structure-and-build.md), decided 9 November 2026) | Phase 0 |
 | [OPEN-H](requirements.md#open-h) (resolved 9 November 2026: landscape works) | Phase 1 (orientation) |
-| Testing fixes and the engine ([ADR-0007](adr/0007-testing-fixes.md), proposed 11 November 2026) | Phase 2 |
+| Testing fixes and the engine ([ADR-0007](adr/0007-testing-fixes.md), decided 11 November 2026) | Phase 2 |
 | [OPEN-A](requirements.md#open-a) | Phase 3, each new fix; collected continuously |
 | [OPEN-J](requirements.md#open-j) | Phase 4 (the report) |
 | The release workflow (ADR to be written) | Phase 5 |

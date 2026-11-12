@@ -221,7 +221,7 @@ The lesson lives only in the page's JavaScript memory. The app keeps it by never
 | [0004](adr/0004-minimum-android-10.md) | The minimum is Android 10 and follows Chrome's support | [OPEN-D](requirements.md#open-d) | Accepted |
 | [0005](adr/0005-signing-key.md) | GitHub Actions signs releases with a key held in a protected environment and backed up twice off GitHub | | Accepted |
 | [0006](adr/0006-structure-and-build.md) | The app is one Kotlin module built with Gradle, with a JavaScript fix engine type-checked in CI | | Accepted |
-| [0007](adr/0007-testing-fixes.md) | The engine and every fix are tested in headless Chromium on hand-written pages, never on copies of Duolingo's | | Proposed |
+| [0007](adr/0007-testing-fixes.md) | The engine and every fix are tested in headless Chromium on hand-written pages, never on copies of Duolingo's | | Accepted |
 
 Still to be written, each briefed in conversation first:
 
