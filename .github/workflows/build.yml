@@ -1,5 +1,5 @@
-# Builds the app's debug APK and runs its tests, and type-checks the fix engine, on every pull
-# request and on main. What each job checks and what to do when it fails:
+# Builds the app's debug APK and runs its tests, and type-checks and tests the fix engine, on every
+# pull request and on main. What each job checks and what to do when it fails:
 # https://github.com/thomaswening/skip-the-fluff/blob/main/docs/development.md#build-workflow
 name: build
 
@@ -48,3 +48,25 @@ jobs:
       - run: npm ci
       - name: Type-check the fix engine
         run: npm run typecheck
+
+  engine-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Install headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run the engine tests
+        run: npm test
+      - name: Keep the engine test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-test-results
+          path: engine/test-results/

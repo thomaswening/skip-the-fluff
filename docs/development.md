@@ -106,7 +106,7 @@ Gradle copies `engine/*.js` and `fixes/*.json` into the [APK](glossary.md#apk)'s
 
 - Microsoft OpenJDK 21, with `JAVA_HOME` pointing at it, e.g. `C:/Program Files/Microsoft/jdk-21.0.13.21-hotspot`. Gradle runs on it, as MSBuild runs on the .NET SDK.
 - The Android SDK, e.g. in `%LOCALAPPDATA%/Android/Sdk`, with platform 36. Gradle finds it through `ANDROID_HOME` or through a file `local.properties` in the repository root with the line `sdk.dir=C:/Users/<you>/AppData/Local/Android/Sdk`. `local.properties` is not committed.
-- Node 22, only for the engine's type check. The Gradle build does not need it.
+- Node 22, only for the engine's type check and the [engine tests](#engine-tests). The Gradle build does not need it.
 
 The first build downloads Gradle and every library, about 1 GB, into `GRADLE_USER_HOME` (by default `~/.gradle`). This is Gradle's counterpart of the NuGet package cache.
 
@@ -194,12 +194,14 @@ When the release PR is merged, the same workflow creates the tag and the GitHub 
 
 ### Build workflow
 
-`.github/workflows/build.yml` runs on every pull request and on every push to `main`. It has two jobs, which run side by side. A red job blocks the merge.
+`.github/workflows/build.yml` runs on every pull request and on every push to `main`. It has three jobs, which run side by side. A red job blocks the merge.
 
 ```mermaid
 flowchart LR
   pr["pull request or<br/>push to main"] --> app["job app:<br/>gradlew assembleDebug testDebugUnitTest"]
   pr --> types["job engine-types:<br/>npm ci, npm run typecheck"]
+  pr --> engineTests["job engine-tests:<br/>npm ci, npm test"]
+  engineTests -->|"on failure"| engineResults["artifact engine-test-results"]
   app --> apk["artifact debug-apk"]
   app -->|"on failure"| reports["artifact test-reports"]
 ```
@@ -249,6 +251,56 @@ The job `engine-types` of the [build workflow](#build-workflow) runs TypeScript'
 cd engine && npm ci && npm run typecheck
 ```
 
+### Engine tests
+
+The job `engine-tests` of the [build workflow](#build-workflow) runs the tests of the [fix engine](glossary.md#fix-engine) and its [exercise guard](glossary.md#exercise-guard), as [ADR-0007](adr/0007-testing-fixes.md) decided. The runner is Playwright Test, Microsoft's browser-automation library, here for Node instead of .NET. It drives Chromium headless, without a window. The job downloads Chromium, about 150 MB. Playwright's version is pinned in `engine/package.json` and `engine/package-lock.json`.
+
+```mermaid
+flowchart LR
+  channel["init script 1:<br/>stand-in for the app,<br/>records messages"] --> engine["init script 2:<br/>fix-engine.js,<br/>wrapped as the app wraps it"]
+  engine --> page["test page from<br/>engine/test/pages"]
+  page --> assertions["test: element hidden or shown,<br/>messages sent"]
+```
+
+Each test loads a [test page](glossary.md#test-page) from `engine/test/pages/`. Before the page's content, `page.addInitScript` runs two scripts, in the order the app's [WebView](glossary.md#webview) will: a stand-in for the app's end of the message channel, then the engine with its configuration. `engine/test/engine-harness.js` does this, and every test uses it. The tests are in `engine/test/fix-engine.spec.js`. Each title names the requirement it checks, which the [docs check](#docs-check) verifies.
+
+**Rule: no fix acts while an [exercise](glossary.md#exercise) is visible** ([REQ-012](requirements.md#req-012)).
+
+| Page | Result | Why |
+|---|---|---|
+| a fix's [markers](glossary.md#marker) match, no exercise | the fix hides its element | |
+| a fix's markers match, a visible exercise | nothing is hidden | the guard |
+| the exercise inside an ancestor with `display: none`, with `visibility: hidden`, or of size zero | the fix acts | the exercise counts as hidden |
+| an exercise appears after the fix acted | a new match stays shown | the guard |
+| that exercise is removed again | the new match is hidden | the guard lets fixes act again |
+| an element with the marker's selector but other text | stays shown | every marker must match, text included |
+
+**Rule: a broken fix leaves [the website](glossary.md#the-website) unchanged and stops no other fix** ([REQ-025](requirements.md#req-025), [REQ-042](requirements.md#req-042)).
+
+| Fix | Result | Why |
+|---|---|---|
+| one marker matches nothing | nothing is hidden | all markers must match |
+| a marker with an invalid selector | nothing of it is hidden; "fix failed" is sent once, with `SyntaxError` and no page content | the fix is switched off for the page |
+| a failing fix beside a working one | the working one still acts | each fix runs in its own error handler |
+
+The fix files in `fixes/` get the four generated cases of [ADR-0007](adr/0007-testing-fixes.md) (point 3) with the first fix. `press` and its test come with the first fix that needs one ([roadmap](roadmap.md#phase-2-fix-engine-and-first-fix)).
+
+**When it fails:** the log of the step "Run the engine tests" names each failed test with its title, e.g. `REQ-012: no fix acts while an exercise is visible`, and the assertion that failed, e.g. `expect(locator).toBeVisible() failed`. Download `engine-test-results` for the details. Fix the engine, not the test. A test changes only when its rule changed, which needs [ADR-0002](adr/0002-fix-engine.md) or [ADR-0007](adr/0007-testing-fixes.md) changed first.
+
+**Running it locally** needs Node 22. The second command downloads Chromium once:
+
+```bash
+cd engine && npm ci
+```
+
+```bash
+cd engine && npx playwright install chromium
+```
+
+```bash
+cd engine && npm test
+```
+
 ### Docs check
 
 `tools/check_docs.py` checks the documents for drift: broken links and anchors, requirement IDs that do not exist, ADRs out of step with their index, Mermaid diagrams that do not render, the requirements' version line, and terms that are not linked to the glossary. It is a copy of the checker in Thomas's claude-config repository (the `project-docs` skill), whose documentation describes every rule with its cases. `head -1 tools/check_docs.py` shows which version this copy is.
@@ -283,7 +335,7 @@ A glossary word used in its everyday sense is exempted where it occurs: `<!-- gl
 **Running it locally** needs Python 3. Node's `npx` is needed for the Mermaid check. Without it, the check is skipped locally with a note.
 
 ```bash
-python tools/check_docs.py . --base origin/main --source "*.kts" "app/*.kts" "gradle/*.toml" "app/src/main/**/*.kt" "app/src/main/**/*.xml" "engine/*.js" "tools/*.mjs" --tests "app/src/test/**/*.kt" --markdown "fixes/*.md" --repo-url https://github.com/thomaswening/skip-the-fluff
+python tools/check_docs.py . --base origin/main --source "*.kts" "app/*.kts" "gradle/*.toml" "app/src/main/**/*.kt" "app/src/main/**/*.xml" "engine/*.js" "tools/*.mjs" --tests "app/src/test/**/*.kt" "engine/test/*.js" --markdown "fixes/*.md" --repo-url https://github.com/thomaswening/skip-the-fluff
 ```
 
 The globs are the same as in `docs-check.yml`. `--source` and `--tests` name the code whose links into `docs/` and whose requirement and ADR IDs are checked. A test that names a requirement ID that does not exist fails the check, e.g. `names REQ-099, which is not defined`. An ID in a code comment without a link to its definition is a warning.
