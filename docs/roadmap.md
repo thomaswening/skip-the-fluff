@@ -46,6 +46,8 @@ The app shows [the website](glossary.md#the-website) full screen in Android's [W
 
 [ADR-0007](adr/0007-testing-fixes.md) decided how the engine, the [exercise guard](glossary.md#exercise-guard) and each fix are tested without copying Duolingo's pages into the repository. Then the engine is built as [ADR-0002](adr/0002-fix-engine.md) describes, with the check of fix files at build time, the message bridge and the feature check of [REQ-048](requirements.md#req-048). The first fix is the "use the app" prompt of [REQ-005](requirements.md#req-005), because it appears after every session and is easy to observe. With it, the reference device confirms what [ADR-0002](adr/0002-fix-engine.md) left to the first fix: that `data-test` attributes identify exercises, that the guard tells visible from hidden exercises, and how the engine tells that a lesson started and ended. The lesson state then hides the system bars during lessons and makes the back gesture ask before ending a lesson.
 
+The engine gets only the `hide` action in this phase, because the first fix needs nothing else. `press` and its engine test come in the pull request of the first fix whose screen cannot be hidden without leaving the lesson stuck ([REQ-012](requirements.md#req-012)). Thomas decided this on 12 November 2026: code that no fix uses would go untested on the reference device, and `press` is the riskier action.
+
 This is the riskiest phase. IF the guard cannot identify exercises with confidence, THEN no fix may act ([REQ-012](requirements.md#req-012)), and the project needs a new ADR before going further.
 
 - Requirements: [REQ-005](requirements.md#req-005), [REQ-012](requirements.md#req-012), [REQ-013](requirements.md#req-013) (during lessons), [REQ-023](requirements.md#req-023), [REQ-024](requirements.md#req-024), [REQ-025](requirements.md#req-025), [REQ-034](requirements.md#req-034), [REQ-037](requirements.md#req-037) (during lessons), [REQ-048](requirements.md#req-048)
@@ -55,6 +57,8 @@ This is the riskiest phase. IF the guard cannot identify exercises with confiden
 ### Phase 3: The remaining fixes
 
 One pull request per fix: leaderboard and league popups, streak and reminder nags, Super and Max upsells (leaving the out-of-hearts screen alone), the unit-completion animation within 1 second, and the listening-lesson intro with its ["important words" preview](glossary.md#important-words-preview). Each fix is accepted on 5 occasions on the reference device ([REQ-034](requirements.md#req-034)). Screens Thomas reports with a screenshot in the meantime become requirements and fixes in the same way, the puzzle animation first. Each says whether it is a [disputed fix](glossary.md#disputed-fix).
+
+A fix is built only after Thomas has seen its screen in the debug app and taken a screenshot, as [OPEN-A](requirements.md#open-a) already asks for new screens. Its [markers](glossary.md#marker) and its [test page](glossary.md#test-page) come from that screen in DevTools on the reference device ([ADR-0007](adr/0007-testing-fixes.md), point 2). Thomas decided this on 12 November 2026: by then he had seen only the "use the app" prompt in the debug app, none of the screens above.
 
 - Requirements: [REQ-006](requirements.md#req-006), [REQ-007](requirements.md#req-007), [REQ-008](requirements.md#req-008), [REQ-009](requirements.md#req-009), [REQ-010](requirements.md#req-010), [REQ-011](requirements.md#req-011)
 - Resolves: nothing
