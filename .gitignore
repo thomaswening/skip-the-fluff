@@ -15,3 +15,7 @@ local.properties
 
 # The engine's type check (npm)
 engine/node_modules/
+
+# The engine tests (Playwright)
+engine/test-results/
+engine/playwright-report/

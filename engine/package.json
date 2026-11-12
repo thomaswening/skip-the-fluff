@@ -1,12 +1,14 @@
 {
   "name": "skip-the-fluff-engine",
   "private": true,
-  "description": "Type check of the fix engine. The Gradle build does not use this file.",
+  "description": "Type check and tests of the fix engine. The Gradle build does not use this file.",
   "license": "GPL-3.0-only",
   "scripts": {
-    "typecheck": "tsc --project tsconfig.json"
+    "typecheck": "tsc --project tsconfig.json",
+    "test": "playwright test --config test/playwright.config.js"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.0",
     "typescript": "5.9.3"
   }
 }
